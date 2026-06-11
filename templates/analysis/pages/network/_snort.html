@@ -1,0 +1,68 @@
+{% load analysis_tags %}
+
+<div class="ar-threat-block">
+
+    <h3 class="ar-threat-title">
+        <i class="fa fa-bullseye"></i>
+        Snort Alerts
+    </h3>
+
+    {% if report.analysis.snort.alerts %}
+
+    <table class="ar-net-table">
+        <thead>
+            <tr>
+                <th>Flow</th>
+                <th style="width: 100px;">SID</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for alert in report.analysis.snort.alerts %}
+            <tr>
+                <td>
+                    <div class="ar-flow">
+                        <span class="ar-pill ar-pill-red">{{ alert.protocol }}</span>
+                        <br>
+
+                        <a target="_blank" href="{% url "analysis.views.moloch" src_ip=alert.src_ip src_port=alert.src_port %}">
+                            {{ alert.src_ip }}{% if alert.src_port %}:{{ alert.src_port }}{% endif %}
+                        </a>
+
+                        <span class="ar-arrow">→</span>
+
+                        <a target="_blank" href="{% url "analysis.views.moloch" dst_ip=alert.dst_ip dst_port=alert.dst_port %}">
+                            {{ alert.dst_ip }}{% if alert.dst_port %}:{{ alert.dst_port }}{% endif %}
+                        </a>
+                    </div>
+                </td>
+
+                <td>
+                    <a target="_blank" href="{% url "analysis.views.moloch" sid=alert.sid %}">
+                        <span class="ar-mono">{{ alert.sid }}</span>
+                    </a>
+                </td>
+
+                <td>
+                    <strong>{{ alert.message }}</strong>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="ar-empty">No Snort alerts.</div>
+    {% endif %}
+
+</div>
+
+<style>
+.ar-threat-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #24364f;
+    margin: 24px 0 12px 0;
+}
+</style>

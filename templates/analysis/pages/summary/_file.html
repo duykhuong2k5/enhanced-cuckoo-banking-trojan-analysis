@@ -1,0 +1,335 @@
+{% load analysis_tags %}
+
+<section class="ar-card ar-general-info-card">
+
+    <div class="ar-section-header">
+        <h2>General Info</h2>
+        <label class="ar-print-check">
+            <input type="checkbox" checked>
+            Add for printing
+        </label>
+    </div>
+
+    <table class="ar-general-table">
+        <tbody>
+
+            <tr>
+                <td class="ar-label">File name:</td>
+                <td class="ar-value ar-strong">
+                    {{ report.analysis.target.file.name|default:"N/A" }}
+                </td>
+            </tr>
+
+            {% if request %}
+            <tr>
+                <td class="ar-label">Full analysis:</td>
+                <td class="ar-value">
+                    <a href="{{ request.get_full_path }}">{{ request.get_full_path }}</a>
+                </td>
+            </tr>
+            {% elif report.analysis.info.id %}
+            <tr>
+                <td class="ar-label">Task ID:</td>
+                <td class="ar-value">#{{ report.analysis.info.id }}</td>
+            </tr>
+            {% endif %}
+
+            <tr>
+                <td class="ar-label">Verdict:</td>
+                <td class="ar-value">
+                    {% if report.analysis.info.score >= 5 %}
+                        <span class="ar-verdict ar-malicious">Malicious activity</span>
+                    {% elif report.analysis.info.score >= 2 %}
+                        <span class="ar-verdict ar-suspicious">Suspicious activity</span>
+                    {% else %}
+                        <span class="ar-verdict ar-benign">No threats detected</span>
+                    {% endif %}
+
+                    <span class="ar-score">
+                        Score: {{ report.analysis.info.score|default:"0" }}
+                    </span>
+                </td>
+            </tr>
+
+            {% if report.analysis.info.started %}
+            <tr>
+                <td class="ar-label">Analysis date:</td>
+                <td class="ar-value">{{ report.analysis.info.started }}</td>
+            </tr>
+            {% endif %}
+
+            {% if report.analysis.info.machine %}
+            <tr>
+                <td class="ar-label">OS / Machine:</td>
+                <td class="ar-value">
+                    {% if report.analysis.info.machine.label %}
+                        {{ report.analysis.info.machine.label }}
+                    {% elif report.analysis.info.machine.name %}
+                        {{ report.analysis.info.machine.name }}
+                    {% else %}
+                        {{ report.analysis.info.machine }}
+                    {% endif %}
+
+                    {% if report.analysis.info.machine.platform %}
+                        <span class="ar-muted">({{ report.analysis.info.machine.platform }})</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+
+            {% if report.analysis.target.category %}
+            <tr>
+                <td class="ar-label">Category:</td>
+                <td class="ar-value">
+                    <span class="ar-pill">{{ report.analysis.target.category }}</span>
+                </td>
+            </tr>
+            {% endif %}
+
+            {% if report.analysis.target.file.yara %}
+            <tr>
+                <td class="ar-label">Tags / YARA:</td>
+                <td class="ar-value">
+                    {% for yara in report.analysis.target.file.yara %}
+                        <span class="ar-pill ar-pill-blue">
+                            {% if yara.name %}
+                                {{ yara.name }}
+                            {% else %}
+                                {{ yara }}
+                            {% endif %}
+                        </span>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endif %}
+
+            <tr>
+                <td class="ar-label">Indicators:</td>
+                <td class="ar-value ar-indicators">
+                    {% if report.analysis.info.score >= 5 %}
+                        <span title="Malware detected"><i class="fa fa-bug"></i></span>
+                        <span title="High risk"><i class="fa fa-exclamation-triangle"></i></span>
+                    {% elif report.analysis.info.score >= 2 %}
+                        <span title="Suspicious"><i class="fa fa-warning"></i></span>
+                    {% else %}
+                        <span title="No strong threat"><i class="fa fa-check-circle"></i></span>
+                    {% endif %}
+
+                    {% if report.analysis.target.file.md5 %}
+                        <span title="File hashes available"><i class="fa fa-qrcode"></i></span>
+                    {% endif %}
+
+                    {% if report.analysis.target.file.yara %}
+                        <span title="YARA hit"><i class="fa fa-crosshairs"></i></span>
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="ar-label">MIME:</td>
+                <td class="ar-value">
+                    {% if report.analysis.target.file.mimetype %}
+                        {{ report.analysis.target.file.mimetype }}
+                    {% elif report.analysis.target.file.mime %}
+                        {{ report.analysis.target.file.mime }}
+                    {% else %}
+                        application/octet-stream
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="ar-label">File info:</td>
+                <td class="ar-value">
+                    {{ report.analysis.target.file.type|default:"N/A" }}
+                </td>
+            </tr>
+
+            {% if report.analysis.target.file.size %}
+            <tr>
+                <td class="ar-label">Size:</td>
+                <td class="ar-value">{{ report.analysis.target.file.size|sizeof_fmt }}</td>
+            </tr>
+            {% endif %}
+
+            <tr>
+                <td class="ar-label">MD5:</td>
+                <td class="ar-value ar-mono">{{ report.analysis.target.file.md5|default:"N/A" }}</td>
+            </tr>
+
+            <tr>
+                <td class="ar-label">SHA1:</td>
+                <td class="ar-value ar-mono">{{ report.analysis.target.file.sha1|default:"N/A" }}</td>
+            </tr>
+
+            <tr>
+                <td class="ar-label">SHA256:</td>
+                <td class="ar-value ar-mono ar-small">
+                    {{ report.analysis.target.file.sha256|default:"N/A" }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="ar-label">SSDEEP:</td>
+                <td class="ar-value ar-mono ar-small">
+                    {{ report.analysis.target.file.ssdeep|default:"N/A"|truncatechars:100 }}
+                </td>
+            </tr>
+
+            {% if report.analysis.target.file.crc32 %}
+            <tr>
+                <td class="ar-label">CRC32:</td>
+                <td class="ar-value ar-mono">{{ report.analysis.target.file.crc32 }}</td>
+            </tr>
+            {% endif %}
+
+            {% if report.analysis.target.file.path %}
+            <tr>
+                <td class="ar-label">Path:</td>
+                <td class="ar-value ar-mono ar-small">
+                    {{ report.analysis.target.file.path }}
+                </td>
+            </tr>
+            {% endif %}
+
+        </tbody>
+    </table>
+
+</section>
+
+<style>
+.ar-card {
+    margin-bottom: 28px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.ar-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #2d3748;
+    margin-bottom: 14px;
+}
+
+.ar-section-header h2 {
+    font-size: 28px;
+    line-height: 1.2;
+    color: #24364f;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+}
+
+.ar-print-check {
+    font-size: 12px;
+    color: #24364f;
+    font-weight: 600;
+    margin: 0;
+}
+
+.ar-general-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ar-general-table tr {
+    border-bottom: 1px solid #edf2f7;
+}
+
+.ar-label {
+    width: 155px;
+    padding: 8px 14px 8px 0;
+    color: #34445c;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    vertical-align: top;
+}
+
+.ar-value {
+    padding: 8px 0;
+    color: #0f2137;
+    font-size: 13px;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+.ar-strong {
+    font-weight: 600;
+}
+
+.ar-muted {
+    color: #718096;
+}
+
+.ar-mono {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    word-break: break-all;
+}
+
+.ar-small {
+    font-size: 11px;
+}
+
+.ar-verdict {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 2px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+.ar-verdict.ar-malicious {
+    background: #ef4444;
+}
+
+.ar-verdict.ar-suspicious {
+    background: #f97316;
+}
+
+.ar-verdict.ar-benign {
+    background: #10b981;
+}
+
+.ar-score {
+    color: #718096;
+    font-size: 12px;
+}
+
+.ar-pill {
+    display: inline-block;
+    padding: 2px 9px;
+    margin: 2px 4px 2px 0;
+    border-radius: 12px;
+    border: 1px solid #a0aec0;
+    background: #f7fafc;
+    color: #1a365d;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.ar-pill-blue {
+    border-color: #90cdf4;
+    background: #ebf8ff;
+    color: #2b6cb0;
+}
+
+.ar-indicators span {
+    display: inline-block;
+    margin-right: 8px;
+    color: #24364f;
+    font-size: 15px;
+}
+
+@media print {
+    .ar-print-check {
+        display: none;
+    }
+
+    .ar-card {
+        page-break-inside: avoid;
+    }
+}
+</style>

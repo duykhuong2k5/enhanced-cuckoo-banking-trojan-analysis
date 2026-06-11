@@ -1,0 +1,654 @@
+{% load analysis_tags %}
+
+<section class="ar-card ar-dashboard-charts">
+
+    <div class="ar-section-header">
+        <h2>Dashboard & Charts</h2>
+        <label class="ar-print-check">
+            <input type="checkbox" checked>
+            Add for printing
+        </label>
+    </div>
+
+    <div id="ar-dashboard-data"
+         data-score="{{ report.analysis.info.score|default:'0' }}"
+         data-processes="{{ report.analysis.behavior.processes|length }}"
+         data-dropped="{{ report.analysis.dropped|length }}"
+         data-hosts="{{ report.analysis.network.hosts|length }}"
+         data-dns="{{ report.analysis.network.dns|length }}"
+         data-tcp="{{ report.analysis.network.tcp|length }}"
+         data-udp="{{ report.analysis.network.udp|length }}"
+         style="display:none;">
+
+        {% for signature in report.analysis.signatures %}
+            <span class="ar-sig-data"
+                  data-name="{{ signature.name|escape }}"
+                  data-description="{{ signature.description|escape }}"
+                  data-severity="{{ signature.severity }}">
+            </span>
+        {% endfor %}
+
+    </div>
+
+    <div class="ar-chart-metric-grid">
+
+        <div class="ar-chart-metric ar-danger-left">
+            <div class="ar-chart-metric-label">Score</div>
+            <div class="ar-chart-metric-value">{{ report.analysis.info.score|default:"0" }}/10</div>
+            <div class="ar-chart-metric-note">Overall malware risk</div>
+        </div>
+
+        <div class="ar-chart-metric">
+            <div class="ar-chart-metric-label">Signatures</div>
+            <div class="ar-chart-metric-value">{{ report.analysis.signatures|length }}</div>
+            <div class="ar-chart-metric-note">Triggered rules</div>
+        </div>
+
+        <div class="ar-chart-metric">
+            <div class="ar-chart-metric-label">Processes</div>
+            <div class="ar-chart-metric-value">{{ report.analysis.behavior.processes|length }}</div>
+            <div class="ar-chart-metric-note">Observed processes</div>
+        </div>
+
+        <div class="ar-chart-metric">
+            <div class="ar-chart-metric-label">Dropped files</div>
+            <div class="ar-chart-metric-value">{{ report.analysis.dropped|length }}</div>
+            <div class="ar-chart-metric-note">Created files</div>
+        </div>
+
+    </div>
+
+    <div class="ar-chart-grid">
+
+        <!-- 1. Signature Severity Distribution -->
+        <div class="ar-chart-box">
+            <h3>1. Signature Severity Distribution</h3>
+            <p class="ar-chart-desc">
+                Shows how many triggered behaviors are malicious, suspicious, or informational.
+            </p>
+
+            <div class="ar-bar-row">
+                <span class="ar-bar-label">Malicious</span>
+                <div class="ar-bar-track">
+                    <div id="ar-bar-malicious" class="ar-bar ar-red" style="width:0%"></div>
+                </div>
+                <span id="ar-count-malicious" class="ar-bar-count">0</span>
+            </div>
+
+            <div class="ar-bar-row">
+                <span class="ar-bar-label">Suspicious</span>
+                <div class="ar-bar-track">
+                    <div id="ar-bar-suspicious" class="ar-bar ar-orange" style="width:0%"></div>
+                </div>
+                <span id="ar-count-suspicious" class="ar-bar-count">0</span>
+            </div>
+
+            <div class="ar-bar-row">
+                <span class="ar-bar-label">Info</span>
+                <div class="ar-bar-track">
+                    <div id="ar-bar-info" class="ar-bar ar-blue" style="width:0%"></div>
+                </div>
+                <span id="ar-count-info" class="ar-bar-count">0</span>
+            </div>
+        </div>
+
+        <!-- 2. Behavior Category Overview -->
+        <div class="ar-chart-box">
+            <h3>2. Behavior Category Overview</h3>
+            <p class="ar-chart-desc">
+                Groups detected behaviors into injection, persistence, network, anti-AV, payload, and banking.
+            </p>
+
+            <div class="ar-donut-wrap">
+                <div id="ar-donut" class="ar-donut">
+                    <div class="ar-donut-inner">
+                        <span id="ar-total-behavior">0</span>
+                        <small>events</small>
+                    </div>
+                </div>
+
+                <div class="ar-donut-legend">
+                    <div><span class="ar-dot ar-dot-red"></span> Injection: <b id="ar-cat-injection">0</b></div>
+                    <div><span class="ar-dot ar-dot-orange"></span> Persistence: <b id="ar-cat-persistence">0</b></div>
+                    <div><span class="ar-dot ar-dot-blue"></span> Network/C2: <b id="ar-cat-network">0</b></div>
+                    <div><span class="ar-dot ar-dot-purple"></span> Anti-AV: <b id="ar-cat-antiav">0</b></div>
+                    <div><span class="ar-dot ar-dot-gray"></span> File/Payload: <b id="ar-cat-file">0</b></div>
+                    <div><span class="ar-dot ar-dot-green"></span> Banking: <b id="ar-cat-banking">0</b></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Network & File Activity -->
+        <div class="ar-chart-box">
+            <h3>3. Network & File Activity</h3>
+            <p class="ar-chart-desc">
+                Compares DNS requests, contacted hosts, TCP/UDP traffic, and dropped files.
+            </p>
+
+            <div class="ar-mini-item">
+                <span>DNS</span>
+                <div class="ar-mini-track">
+                    <div id="ar-mini-dns" class="ar-mini-fill"></div>
+                </div>
+                <b id="ar-mini-dns-count">0</b>
+            </div>
+
+            <div class="ar-mini-item">
+                <span>Hosts</span>
+                <div class="ar-mini-track">
+                    <div id="ar-mini-hosts" class="ar-mini-fill"></div>
+                </div>
+                <b id="ar-mini-hosts-count">0</b>
+            </div>
+
+            <div class="ar-mini-item">
+                <span>TCP</span>
+                <div class="ar-mini-track">
+                    <div id="ar-mini-tcp" class="ar-mini-fill"></div>
+                </div>
+                <b id="ar-mini-tcp-count">0</b>
+            </div>
+
+            <div class="ar-mini-item">
+                <span>UDP</span>
+                <div class="ar-mini-track">
+                    <div id="ar-mini-udp" class="ar-mini-fill"></div>
+                </div>
+                <b id="ar-mini-udp-count">0</b>
+            </div>
+
+            <div class="ar-mini-item">
+                <span>Dropped</span>
+                <div class="ar-mini-track">
+                    <div id="ar-mini-dropped" class="ar-mini-fill"></div>
+                </div>
+                <b id="ar-mini-dropped-count">0</b>
+            </div>
+        </div>
+
+        <!-- 4. Banking Trojan Risk View -->
+        <div class="ar-chart-box">
+            <h3>4. Banking Trojan Risk View</h3>
+            <p class="ar-chart-desc">
+                Calculates a banking trojan risk score based on financial lure, injection, persistence, payload, C2 and anti-AV behavior.
+            </p>
+
+            <div class="ar-risk-meter">
+                <div class="ar-risk-meter-track">
+                    <div id="ar-risk-meter-fill" class="ar-risk-meter-fill" style="width:0%"></div>
+                </div>
+                <div class="ar-risk-meter-value">
+                    <span id="ar-risk-score">0</span>/100
+                </div>
+            </div>
+
+            <div class="ar-risk-list">
+                <div id="ar-risk-lure">Financial lure / Banking signature</div>
+                <div id="ar-risk-injection">Process injection</div>
+                <div id="ar-risk-persistence">Persistence</div>
+                <div id="ar-risk-payload">Payload dropping</div>
+                <div id="ar-risk-network">C2 / Network activity</div>
+                <div id="ar-risk-antiav">Anti-AV / Service tampering</div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+<style>
+.ar-dashboard-charts {
+    margin-top: 24px;
+}
+
+.ar-chart-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.ar-chart-metric {
+    background: #f8fafc;
+    border: 1px solid #dbe5ef;
+    border-left: 4px solid #64748b;
+    padding: 12px;
+}
+
+.ar-danger-left {
+    border-left-color: #dc2626;
+}
+
+.ar-chart-metric-label {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.ar-chart-metric-value {
+    color: #1e293b;
+    font-size: 26px;
+    font-weight: 900;
+    margin-top: 4px;
+}
+
+.ar-chart-metric-note {
+    color: #94a3b8;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.ar-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.ar-chart-box {
+    background: #fff;
+    border: 1px solid #dbe5ef;
+    padding: 15px;
+}
+
+.ar-chart-box h3 {
+    margin: 0 0 6px 0;
+    color: #26384f;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.ar-chart-desc {
+    margin: 0 0 14px 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.ar-bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.ar-bar-label {
+    width: 90px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ar-bar-track {
+    flex: 1;
+    height: 17px;
+    background: #e5e7eb;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.ar-bar {
+    height: 17px;
+    border-radius: 20px;
+    transition: width .4s ease;
+}
+
+.ar-red {
+    background: #dc2626;
+}
+
+.ar-orange {
+    background: #f97316;
+}
+
+.ar-blue {
+    background: #0ea5e9;
+}
+
+.ar-bar-count {
+    width: 35px;
+    text-align: right;
+    color: #1e293b;
+    font-weight: 800;
+    font-size: 12px;
+}
+
+.ar-donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.ar-donut {
+    width: 145px;
+    height: 145px;
+    border-radius: 50%;
+    background: conic-gradient(#e5e7eb 0deg 360deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ar-donut-inner {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: #fff;
+    text-align: center;
+    padding-top: 20px;
+}
+
+.ar-donut-inner span {
+    color: #1e293b;
+    font-size: 26px;
+    font-weight: 900;
+    display: block;
+}
+
+.ar-donut-inner small {
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+.ar-donut-legend {
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+.ar-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.ar-dot-red { background: #dc2626; }
+.ar-dot-orange { background: #f97316; }
+.ar-dot-blue { background: #0ea5e9; }
+.ar-dot-purple { background: #8b5cf6; }
+.ar-dot-gray { background: #64748b; }
+.ar-dot-green { background: #16a34a; }
+
+.ar-mini-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 42px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    color: #334155;
+    font-size: 12px;
+}
+
+.ar-mini-track {
+    height: 13px;
+    background: #e5e7eb;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.ar-mini-fill {
+    height: 13px;
+    background: #2563eb;
+    border-radius: 20px;
+    width: 0%;
+    transition: width .4s ease;
+}
+
+.ar-risk-meter {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.ar-risk-meter-track {
+    flex: 1;
+    height: 24px;
+    background: #e5e7eb;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.ar-risk-meter-fill {
+    height: 24px;
+    background: #dc2626;
+    border-radius: 20px;
+    transition: width .4s ease;
+}
+
+.ar-risk-meter-value {
+    width: 85px;
+    font-size: 18px;
+    font-weight: 900;
+    color: #991b1b;
+}
+
+.ar-risk-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+}
+
+.ar-risk-list div {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    color: #64748b;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ar-risk-list .active {
+    background: #fff7f7;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+@media (max-width: 1200px) {
+    .ar-chart-metric-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ar-chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .ar-chart-metric-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ar-risk-list {
+        grid-template-columns: 1fr;
+    }
+
+    .ar-donut-wrap {
+        display: block;
+    }
+
+    .ar-donut {
+        margin-bottom: 12px;
+    }
+}
+</style>
+
+<script type="text/javascript">
+(function() {
+    function pct(value, max) {
+        if (!max || max <= 0) return 0;
+        return Math.min(100, Math.round((value / max) * 100));
+    }
+
+    function setText(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = value;
+    }
+
+    function setWidth(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.style.width = value + "%";
+    }
+
+    function addActive(id) {
+        var el = document.getElementById(id);
+        if (el && el.className.indexOf("active") === -1) {
+            el.className += " active";
+        }
+    }
+
+    var root = document.getElementById("ar-dashboard-data");
+    if (!root) return;
+
+    var sigs = root.getElementsByClassName("ar-sig-data");
+
+    var malicious = 0;
+    var suspicious = 0;
+    var info = 0;
+
+    var injection = 0;
+    var persistence = 0;
+    var network = 0;
+    var antiav = 0;
+    var filecat = 0;
+    var banking = 0;
+
+    for (var i = 0; i < sigs.length; i++) {
+        var sev = parseInt(sigs[i].getAttribute("data-severity") || "0", 10);
+        var name = (sigs[i].getAttribute("data-name") || "").toLowerCase();
+        var desc = (sigs[i].getAttribute("data-description") || "").toLowerCase();
+        var blob = name + " " + desc;
+
+        if (sev >= 3) malicious++;
+        else if (sev == 2) suspicious++;
+        else info++;
+
+        if (blob.indexOf("inject") >= 0 || blob.indexOf("runpe") >= 0 || blob.indexOf("thread") >= 0 || blob.indexOf("ntsetcontextthread") >= 0) {
+            injection++;
+        }
+
+        if (blob.indexOf("autorun") >= 0 || blob.indexOf("persistence") >= 0 || blob.indexOf("startup") >= 0 || blob.indexOf("run key") >= 0) {
+            persistence++;
+        }
+
+        if (blob.indexOf("cnc") >= 0 || blob.indexOf("c2") >= 0 || blob.indexOf("network") >= 0 || blob.indexOf("communication") >= 0 || blob.indexOf("host") >= 0) {
+            network++;
+        }
+
+        if (blob.indexOf("antiav") >= 0 || blob.indexOf("anti-av") >= 0 || blob.indexOf("service") >= 0 || blob.indexOf("stop") >= 0) {
+            antiav++;
+        }
+
+        if (blob.indexOf("creates_exe") >= 0 || blob.indexOf("dropped") >= 0 || blob.indexOf("creates executable") >= 0 || blob.indexOf("file") >= 0) {
+            filecat++;
+        }
+
+        if (blob.indexOf("banking") >= 0 || blob.indexOf("financial") >= 0 || blob.indexOf("banker") >= 0 || blob.indexOf("trojan") >= 0) {
+            banking++;
+        }
+    }
+
+    /* Chart 1: Signature severity */
+    var maxSeverity = Math.max(malicious, suspicious, info, 1);
+
+    setText("ar-count-malicious", malicious);
+    setText("ar-count-suspicious", suspicious);
+    setText("ar-count-info", info);
+
+    setWidth("ar-bar-malicious", pct(malicious, maxSeverity));
+    setWidth("ar-bar-suspicious", pct(suspicious, maxSeverity));
+    setWidth("ar-bar-info", pct(info, maxSeverity));
+
+    /* Chart 2: Behavior category donut */
+    var totalBehavior = injection + persistence + network + antiav + filecat + banking;
+
+    setText("ar-total-behavior", totalBehavior);
+    setText("ar-cat-injection", injection);
+    setText("ar-cat-persistence", persistence);
+    setText("ar-cat-network", network);
+    setText("ar-cat-antiav", antiav);
+    setText("ar-cat-file", filecat);
+    setText("ar-cat-banking", banking);
+
+    var donut = document.getElementById("ar-donut");
+    if (donut && totalBehavior > 0) {
+        var deg1 = Math.round((injection / totalBehavior) * 360);
+        var deg2 = deg1 + Math.round((persistence / totalBehavior) * 360);
+        var deg3 = deg2 + Math.round((network / totalBehavior) * 360);
+        var deg4 = deg3 + Math.round((antiav / totalBehavior) * 360);
+        var deg5 = deg4 + Math.round((filecat / totalBehavior) * 360);
+        var deg6 = 360;
+
+        donut.style.background =
+            "conic-gradient(" +
+            "#dc2626 0deg " + deg1 + "deg, " +
+            "#f97316 " + deg1 + "deg " + deg2 + "deg, " +
+            "#0ea5e9 " + deg2 + "deg " + deg3 + "deg, " +
+            "#8b5cf6 " + deg3 + "deg " + deg4 + "deg, " +
+            "#64748b " + deg4 + "deg " + deg5 + "deg, " +
+            "#16a34a " + deg5 + "deg " + deg6 + "deg" +
+            ")";
+    }
+
+    /* Chart 3: Network & file activity */
+    var dns = parseInt(root.getAttribute("data-dns") || "0", 10);
+    var hosts = parseInt(root.getAttribute("data-hosts") || "0", 10);
+    var tcp = parseInt(root.getAttribute("data-tcp") || "0", 10);
+    var udp = parseInt(root.getAttribute("data-udp") || "0", 10);
+    var dropped = parseInt(root.getAttribute("data-dropped") || "0", 10);
+
+    var maxActivity = Math.max(dns, hosts, tcp, udp, dropped, 1);
+
+    setText("ar-mini-dns-count", dns);
+    setText("ar-mini-hosts-count", hosts);
+    setText("ar-mini-tcp-count", tcp);
+    setText("ar-mini-udp-count", udp);
+    setText("ar-mini-dropped-count", dropped);
+
+    setWidth("ar-mini-dns", pct(dns, maxActivity));
+    setWidth("ar-mini-hosts", pct(hosts, maxActivity));
+    setWidth("ar-mini-tcp", pct(tcp, maxActivity));
+    setWidth("ar-mini-udp", pct(udp, maxActivity));
+    setWidth("ar-mini-dropped", pct(dropped, maxActivity));
+
+    /* Chart 4: Banking trojan risk */
+    var risk = 0;
+
+    if (banking > 0) {
+        risk += 25;
+        addActive("ar-risk-lure");
+    }
+
+    if (injection > 0) {
+        risk += 20;
+        addActive("ar-risk-injection");
+    }
+
+    if (persistence > 0) {
+        risk += 15;
+        addActive("ar-risk-persistence");
+    }
+
+    if (filecat > 0 || dropped > 0) {
+        risk += 15;
+        addActive("ar-risk-payload");
+    }
+
+    if (network > 0 || hosts > 0 || dns > 0 || tcp > 0 || udp > 0) {
+        risk += 15;
+        addActive("ar-risk-network");
+    }
+
+    if (antiav > 0) {
+        risk += 10;
+        addActive("ar-risk-antiav");
+    }
+
+    risk = Math.min(100, risk);
+
+    setText("ar-risk-score", risk);
+    setWidth("ar-risk-meter-fill", risk);
+
+})();
+</script>

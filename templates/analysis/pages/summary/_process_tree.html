@@ -1,0 +1,165 @@
+{% load analysis_tags %}
+
+<section class="ar-card ar-summary-process-tree">
+
+    <div class="ar-section-header">
+        <h2>Processes</h2>
+        <label class="ar-print-check">
+            <input type="checkbox" checked>
+            Add for printing
+        </label>
+    </div>
+
+    <div class="ar-mini-metrics">
+        <div class="ar-mini-metric">
+            <span>Total processes</span>
+            <strong>{{ report.analysis.behavior.processes|length }}</strong>
+        </div>
+
+        <div class="ar-mini-metric">
+            <span>Monitored processes</span>
+            <strong>{{ report.analysis.behavior.processes|filter_key_if_has:"track"|length }}</strong>
+        </div>
+
+        <div class="ar-mini-metric">
+            <span>Signatures</span>
+            <strong>{{ report.analysis.signatures|length }}</strong>
+        </div>
+    </div>
+
+    <div class="ar-tree-wrapper">
+
+        <h3 class="ar-mini-title">Behavior graph</h3>
+
+        {% if report.analysis.behavior.processtree %}
+            <ul class="ar-summary-tree">
+            {% for process in report.analysis.behavior.processtree|filter_key_if_has:"track" %}
+                {% include "analysis/pages/summary/_process_tree_process.html" %}
+            {% endfor %}
+            </ul>
+        {% else %}
+            <div class="ar-empty">No process tree available.</div>
+        {% endif %}
+
+    </div>
+
+</section>
+
+<style>
+.ar-summary-process-tree {
+    margin-top: 24px;
+}
+
+.ar-mini-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.ar-mini-metric {
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 3px;
+}
+
+.ar-mini-metric span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.ar-mini-metric strong {
+    display: block;
+    font-size: 24px;
+    color: #111827;
+    margin-top: 4px;
+}
+
+.ar-mini-title {
+    font-size: 18px;
+    color: #24364f;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+}
+
+.ar-summary-tree {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.ar-summary-tree ul {
+    list-style: none;
+    padding-left: 28px;
+    margin-top: 8px;
+    border-left: 1px dashed #cbd5e1;
+}
+
+.ar-summary-tree-node {
+    margin: 8px 0;
+}
+
+.ar-summary-process-card {
+    display: inline-block;
+    min-width: 360px;
+    max-width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+    border-radius: 3px;
+}
+
+.ar-summary-process-card.ar-root-process {
+    border-left-color: #ef4444;
+    background: #fff7f7;
+}
+
+.ar-summary-process-name {
+    font-weight: 700;
+    color: #111827;
+}
+
+.ar-summary-process-pid {
+    color: #64748b;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.ar-summary-process-cmd {
+    margin-top: 5px;
+    color: #64748b;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    word-break: break-all;
+}
+
+.ar-summary-process-link {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.ar-empty {
+    padding: 14px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+@media (max-width: 900px) {
+    .ar-mini-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .ar-summary-process-card {
+        min-width: 0;
+        width: 100%;
+    }
+}
+</style>

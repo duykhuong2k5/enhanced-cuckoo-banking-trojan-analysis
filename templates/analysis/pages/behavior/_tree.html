@@ -1,0 +1,283 @@
+{% load analysis_tags %}
+
+<div class="ar-bg-wrap">
+
+    <div class="ar-bg-help">
+        <span><i class="fa fa-info-circle"></i> Click at the process to see the details</span>
+
+        <div class="ar-bg-zoom">
+            <button type="button" class="ar-bg-zoom-out">-</button>
+            <button type="button" class="ar-bg-zoom-in">+</button>
+        </div>
+    </div>
+
+    <div class="ar-bg-canvas">
+
+        {% if report.analysis.behavior.processtree %}
+
+        <div class="ar-bg-viewport">
+
+            <div class="ar-bg-start">
+                <i class="fa fa-play"></i>
+            </div>
+
+            <div class="ar-bg-start-line">
+                <span>start</span>
+            </div>
+
+            <ul class="ar-bg-root">
+            {% for process in report.analysis.behavior.processtree|filter_key_if_has:"track" %}
+                {% include "analysis/pages/behavior/_tree_process.html" %}
+            {% endfor %}
+            </ul>
+
+        </div>
+
+        {% else %}
+            <div class="ar-empty">No process tree available.</div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<style>
+.ar-bg-wrap {
+    width: 100%;
+}
+
+.ar-bg-help {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #9ca3af;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.ar-bg-zoom button {
+    border: 0;
+    background: #e9eef3;
+    color: #24364f;
+    font-weight: 700;
+    width: 32px;
+    height: 28px;
+    margin-left: 4px;
+}
+
+.ar-bg-canvas {
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    min-height: 420px;
+    overflow: auto;
+    padding: 70px 60px;
+    position: relative;
+}
+
+.ar-bg-viewport {
+    display: flex;
+    align-items: center;
+    min-width: 980px;
+    transform-origin: left center;
+    transition: transform .15s ease;
+}
+
+.ar-bg-start {
+    width: 42px;
+    height: 42px;
+    border: 3px solid #111827;
+    color: #111827;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-right: 24px;
+}
+
+.ar-bg-start-line {
+    width: 90px;
+    border-top: 2px dotted #9ca3af;
+    position: relative;
+    margin-right: 36px;
+}
+
+.ar-bg-start-line span {
+    position: absolute;
+    top: -24px;
+    left: 24px;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ar-bg-start-line:after {
+    content: "";
+    position: absolute;
+    right: -2px;
+    top: -6px;
+    border-left: 14px solid #6b7280;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+}
+
+.ar-bg-root,
+.ar-bg-children {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ar-bg-root {
+    display: block;
+}
+
+.ar-bg-tree-node {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    margin: 22px 0;
+}
+
+.ar-bg-tree-node:before {
+    content: "";
+    position: absolute;
+    left: -34px;
+    top: 46px;
+    width: 34px;
+    border-top: 2px solid #6b7280;
+}
+
+.ar-bg-children {
+    margin-left: 70px;
+    padding-left: 38px;
+    border-left: 2px solid #6b7280;
+}
+
+.ar-bg-children > .ar-bg-tree-node {
+    margin: 28px 0;
+}
+
+.ar-bg-children > .ar-bg-tree-node:before {
+    left: -38px;
+    width: 38px;
+}
+
+.ar-bg-node {
+    width: 310px;
+    min-height: 74px;
+    border: 3px solid #94a3b8;
+    border-left-width: 8px;
+    background: #fff;
+    padding: 9px 12px;
+    position: relative;
+}
+
+.ar-bg-node-danger {
+    border-color: #e11d48;
+}
+
+.ar-bg-node-warning {
+    border-color: #f97316;
+}
+
+.ar-bg-node-neutral {
+    border-color: #9ca3af;
+}
+
+.ar-bg-tag {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #111827;
+    font-size: 13px;
+    font-family: Georgia, "Times New Roman", serif;
+    white-space: nowrap;
+}
+
+.ar-bg-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ar-bg-title:hover {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+.ar-bg-icon-danger {
+    font-size: 28px;
+    color: #111827;
+}
+
+.ar-bg-icon-neutral {
+    font-size: 24px;
+    color: #111827;
+}
+
+.ar-bg-meta {
+    margin-top: 5px;
+    color: #64748b;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 10px;
+    word-break: break-all;
+}
+
+.ar-bg-indicators {
+    margin-top: 5px;
+    color: #111827;
+    font-size: 13px;
+}
+
+.ar-bg-indicators i {
+    margin-right: 5px;
+}
+
+.ar-bg-nospec {
+    color: #9ca3af;
+    font-size: 11px;
+    margin-left: 34px;
+}
+
+.ar-empty {
+    padding: 14px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+</style>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".ar-bg-wrap").each(function() {
+        $(this).data("scale", 1);
+    });
+
+    $(".ar-bg-zoom-in").off("click").on("click", function() {
+        var wrap = $(this).closest(".ar-bg-wrap");
+        var viewport = wrap.find(".ar-bg-viewport");
+        var scale = wrap.data("scale") || 1;
+
+        scale = Math.min(scale + 0.1, 1.6);
+        wrap.data("scale", scale);
+        viewport.css("transform", "scale(" + scale + ")");
+    });
+
+    $(".ar-bg-zoom-out").off("click").on("click", function() {
+        var wrap = $(this).closest(".ar-bg-wrap");
+        var viewport = wrap.find(".ar-bg-viewport");
+        var scale = wrap.data("scale") || 1;
+
+        scale = Math.max(scale - 0.1, 0.5);
+        wrap.data("scale", scale);
+        viewport.css("transform", "scale(" + scale + ")");
+    });
+});
+</script>

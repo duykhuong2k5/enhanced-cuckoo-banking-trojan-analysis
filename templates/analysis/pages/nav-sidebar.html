@@ -1,0 +1,178 @@
+<nav class="flex-nav__nav ar-nav" id="analysis-nav">
+
+    <ul class="cuckoo-nav">
+
+        <li class="ar-nav-title">
+            <span>Malware report</span>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "summary" %}"
+            {% if env.view_kwargs.page == 'summary' %} class="active" {% endif %}>
+                <i class="fa fa-home"></i>
+                <span>General</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "static" %}"
+            {% if env.view_kwargs.page == 'static' %} class="active" {% endif %}>
+                <i class="fa fa-info-circle"></i>
+                <span>Static information</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "behavior" %}"
+            {% if env.view_kwargs.page == 'behavior' %} class="active" {% endif %}>
+                <i class="fa fa-sitemap"></i>
+                <span>Processes</span>
+                {% if report.analysis.behavior %}
+                    <em>{{ report.analysis.behavior.processes|filter_key_if_has:"track"|length }}</em>
+                {% endif %}
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "network" %}"
+            {% if env.view_kwargs.page == 'network' %} class="active" {% endif %}>
+                <i class="fa fa-globe"></i>
+                <span>Network</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "dropped_files" %}"
+            {% if env.view_kwargs.page == 'dropped_files' %} class="active" {% endif %}>
+                <i class="fa fa-file-code-o"></i>
+                <span>Files activity</span>
+                <em>{{ report.analysis.dropped|length }}</em>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "extracted" %}"
+            {% if env.view_kwargs.page == 'extracted' %} class="active" {% endif %}>
+                <i class="fa fa-archive"></i>
+                <span>Extracted</span>
+                {% if report.analysis.extracted %}
+                    <em>{{ report.analysis.extracted|length }}</em>
+                {% endif %}
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "dropped_buffers" %}"
+            {% if env.view_kwargs.page == 'dropped_buffers' %} class="active" {% endif %}>
+                <i class="fa fa-server"></i>
+                <span>Dropped buffers</span>
+                {% if report.analysis.buffer %}
+                    <em>{{ report.analysis.buffer|length }}</em>
+                {% endif %}
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "procmemory" %}"
+            {% if env.view_kwargs.page == 'procmemory' %} class="active" {% endif %}>
+                <i class="fa fa-qrcode"></i>
+                <span>Process memory</span>
+                {% if report.analysis.procmemory %}
+                    <em>{{ report.analysis.procmemory|length }}</em>
+                {% endif %}
+            </a>
+        </li>
+
+        {% if report.analysis.memory %}
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "memory" %}"
+            {% if env.view_kwargs.page == "memory" %} class="active" {% endif %}>
+                <i class="fa fa-microchip"></i>
+                <span>VM memory</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% if report.analysis.misp %}
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "misp" %}"
+            {% if env.view_kwargs.page == 'misp' %} class="active" {% endif %}>
+                <i class="fa fa-flag"></i>
+                <span>MISP</span>
+                <em>{{ report.analysis.misp|length }}</em>
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="ar-nav-title">
+            <span>Tools</span>
+        </li>
+
+        <li>
+            <a href="{% url "analysis/compare/left" report.analysis.info.id %}"
+            {% if env.view_kwargs.page == 'compare' %} class="active" {% endif %}>
+                <i class="fa fa-random"></i>
+                <span>Compare</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "export" %}"
+            {% if env.view_kwargs.page == 'export' %} class="active" {% endif %}>
+                <i class="fa fa-download"></i>
+                <span>Export</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis/reboot" report.analysis.info.id %}">
+                <i class="fa fa-power-off"></i>
+                <span>Reboot</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url "analysis" report.analysis.info.id "options" %}"
+            {% if env.view_kwargs.page == 'options' %} class="active" {% endif %}>
+                <i class="fa fa-cogs"></i>
+                <span>Options</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="#" data-toggle="modal" data-target="#feedback_form">
+                <i class="fa fa-bug"></i>
+                <span>Feedback</span>
+            </a>
+        </li>
+
+        <li class="lock-sidebar">
+            <a href="sidebar:toggle-lock" title="Click to disable collapsing">
+                <i class="fa"></i>
+                <span></span>
+            </a>
+        </li>
+
+    </ul>
+
+</nav>
+
+<style>
+.ar-nav-title {
+    padding: 13px 18px 6px 18px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.ar-nav .cuckoo-nav a span {
+    font-weight: 600;
+}
+
+.ar-nav .cuckoo-nav a.active {
+    border-left: 4px solid #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+</style>

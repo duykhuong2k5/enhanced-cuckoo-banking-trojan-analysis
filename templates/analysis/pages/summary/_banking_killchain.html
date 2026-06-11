@@ -1,0 +1,345 @@
+<section class="ar-card ar-banking-killchain">
+
+    <div class="ar-section-header">
+        <h2>Banking Fraud Kill Chain</h2>
+        <label class="ar-print-check">
+            <input type="checkbox" checked>
+            Add for printing
+        </label>
+    </div>
+
+    <div class="ar-killchain-verdict">
+        <div class="ar-killchain-main">
+            <i class="fa fa-university"></i>
+            Financial Fraud Risk: High
+        </div>
+        <div class="ar-killchain-sub">
+            The sample behaves like a banking/financial trojan: it uses a fake financial document lure, executes payload activity, performs injection/persistence, and shows C2-capable behavior.
+        </div>
+    </div>
+
+    <div class="ar-killchain-flow">
+
+        <div class="ar-kill-step ar-step-red">
+            <div class="ar-step-num">1</div>
+            <div class="ar-step-title">Financial lure</div>
+            <div class="ar-step-desc">
+                Fake invoice / document-style filename.
+                <br>
+                <code>{{ report.analysis.target.file.name }}</code>
+            </div>
+        </div>
+
+        <div class="ar-kill-arrow">→</div>
+
+        <div class="ar-kill-step ar-step-orange">
+            <div class="ar-step-num">2</div>
+            <div class="ar-step-title">Execution</div>
+            <div class="ar-step-desc">
+                User-facing executable starts malware chain.
+            </div>
+        </div>
+
+        <div class="ar-kill-arrow">→</div>
+
+        <div class="ar-kill-step ar-step-red">
+            <div class="ar-step-num">3</div>
+            <div class="ar-step-title">Payload activity</div>
+            <div class="ar-step-desc">
+                Dropped files / created executable payloads.
+            </div>
+        </div>
+
+        <div class="ar-kill-arrow">→</div>
+
+        <div class="ar-kill-step ar-step-red">
+            <div class="ar-step-num">4</div>
+            <div class="ar-step-title">Injection</div>
+            <div class="ar-step-desc">
+                RunPE / thread context / resume thread behavior.
+            </div>
+        </div>
+
+        <div class="ar-kill-arrow">→</div>
+
+        <div class="ar-kill-step ar-step-orange">
+            <div class="ar-step-num">5</div>
+            <div class="ar-step-title">Persistence & C2</div>
+            <div class="ar-step-desc">
+                Autorun persistence and external communication indicators.
+            </div>
+        </div>
+
+    </div>
+
+    <h3 class="ar-subtitle">Why this matters for banking trojan analysis</h3>
+
+    <table class="ar-killchain-table">
+        <thead>
+            <tr>
+                <th style="width: 220px;">Fraud capability</th>
+                <th>Status</th>
+                <th>Evidence</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td>Social engineering lure</td>
+                <td><span class="ar-risk ar-risk-high">Detected</span></td>
+                <td>
+                    Filename resembles financial document:
+                    <code>{{ report.analysis.target.file.name }}</code>
+                </td>
+            </tr>
+
+            {% for signature in report.analysis.signatures %}
+
+                {% if signature.name == "banking_trojan_heuristic" %}
+                <tr>
+                    <td>Banking trojan behavior</td>
+                    <td><span class="ar-risk ar-risk-high">Detected</span></td>
+                    <td>
+                        {{ signature.description }}
+                        <div class="ar-small">Signature: <code>{{ signature.name }}</code></div>
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% if signature.name == "creates_exe" %}
+                <tr>
+                    <td>Payload dropping</td>
+                    <td><span class="ar-risk ar-risk-high">Detected</span></td>
+                    <td>
+                        {{ signature.description }}
+                        <div class="ar-small">Signature: <code>{{ signature.name }}</code></div>
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% if signature.name == "injection_runpe" or signature.name == "injection_ntsetcontextthread" or signature.name == "injection_resumethread" %}
+                <tr>
+                    <td>Process injection</td>
+                    <td><span class="ar-risk ar-risk-high">Detected</span></td>
+                    <td>
+                        {{ signature.description }}
+                        <div class="ar-small">Signature: <code>{{ signature.name }}</code></div>
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% if signature.name == "persistence_autorun" %}
+                <tr>
+                    <td>Persistence</td>
+                    <td><span class="ar-risk ar-risk-high">Detected</span></td>
+                    <td>
+                        {{ signature.description }}
+                        <div class="ar-small">Signature: <code>{{ signature.name }}</code></div>
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% if signature.name == "p2p_cnc" or signature.name == "nolookup_communication" %}
+                <tr>
+                    <td>C2 / external communication</td>
+                    <td><span class="ar-risk ar-risk-high">Detected</span></td>
+                    <td>
+                        {{ signature.description }}
+                        <div class="ar-small">Signature: <code>{{ signature.name }}</code></div>
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% if signature.name == "antiav_servicestop" or signature.name == "stops_service" %}
+                <tr>
+                    <td>Anti-AV / service tampering</td>
+                    <td><span class="ar-risk ar-risk-medium">Observed</span></td>
+                    <td>
+                        {{ signature.description }}
+                        <div class="ar-small">Signature: <code>{{ signature.name }}</code></div>
+                    </td>
+                </tr>
+                {% endif %}
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+    <div class="ar-analyst-verdict">
+        <strong>Analyst verdict:</strong>
+        This sample should be treated as a <b>Banking Trojan / Financial Trojan</b>.
+        The family is currently <b>unconfirmed</b>; it should not be labeled as Zeus/Zbot unless YARA, AV, configuration extraction, or threat intelligence confirms that family.
+    </div>
+
+</section>
+
+<style>
+.ar-banking-killchain {
+    margin-top: 24px;
+}
+
+.ar-killchain-verdict {
+    border-left: 6px solid #dc2626;
+    background: #fff7f7;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+}
+
+.ar-killchain-main {
+    color: #991b1b;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.ar-killchain-main i {
+    margin-right: 8px;
+}
+
+.ar-killchain-sub {
+    margin-top: 6px;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ar-killchain-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 22px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.ar-kill-step {
+    min-width: 185px;
+    border: 1px solid #dbe5ef;
+    background: #fff;
+    padding: 12px;
+    position: relative;
+}
+
+.ar-step-red {
+    border-top: 5px solid #dc2626;
+}
+
+.ar-step-orange {
+    border-top: 5px solid #f97316;
+}
+
+.ar-step-num {
+    width: 26px;
+    height: 26px;
+    background: #1e293b;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 26px;
+    font-weight: 900;
+    margin-bottom: 8px;
+}
+
+.ar-step-title {
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 900;
+    margin-bottom: 6px;
+}
+
+.ar-step-desc {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.ar-kill-arrow {
+    display: flex;
+    align-items: center;
+    color: #94a3b8;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.ar-subtitle {
+    color: #26384f;
+    font-size: 18px;
+    font-weight: 800;
+    margin: 18px 0 10px 0;
+}
+
+.ar-killchain-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #dbe5ef;
+}
+
+.ar-killchain-table th {
+    background: #e9eef3;
+    color: #334155;
+    font-size: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.ar-killchain-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #1f2937;
+    border-bottom: 1px solid #dbe5ef;
+    vertical-align: top;
+}
+
+.ar-killchain-table tr:nth-child(even) td {
+    background: #f8fafc;
+}
+
+.ar-risk {
+    display: inline-block;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 3px;
+}
+
+.ar-risk-high {
+    background: #dc2626;
+}
+
+.ar-risk-medium {
+    background: #f97316;
+}
+
+.ar-small {
+    margin-top: 5px;
+    color: #64748b;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+}
+
+.ar-analyst-verdict {
+    margin-top: 14px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    color: #334155;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media (max-width: 1000px) {
+    .ar-killchain-flow {
+        display: block;
+    }
+
+    .ar-kill-step {
+        margin-bottom: 10px;
+    }
+
+    .ar-kill-arrow {
+        display: none;
+    }
+}
+</style>

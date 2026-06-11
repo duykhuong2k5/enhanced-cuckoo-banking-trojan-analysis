@@ -1,0 +1,55 @@
+{% load analysis_tags %}
+
+<div class="ar-network-block" id="tcp-requests">
+
+    {% if report.analysis.network.tcp %}
+
+    <table class="ar-net-table">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th style="width: 60px;"></th>
+                <th>Destination</th>
+                <th style="width: 220px;">Resolved name</th>
+                <th style="width: 120px;">Protocol</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for p in report.analysis.network.tcp %}
+            <tr>
+                <td>
+                    <span class="ar-flow">{{ p.src }}:{{ p.sport }}</span>
+                </td>
+
+                <td class="text-center">
+                    <span class="ar-arrow">→</span>
+                </td>
+
+                <td>
+                    <a href="{{ p.src }},{{ p.sport }},{{ p.dst }},{{ p.dport }},tcp">
+                        <span class="ar-flow">{{ p.dst }}:{{ p.dport }}</span>
+                    </a>
+                </td>
+
+                <td>
+                    {% if report.iplookups|get_item:p.dst %}
+                        {{ report.iplookups|get_item:p.dst }}
+                    {% else %}
+                        <span class="ar-muted">N/A</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <span class="ar-pill ar-pill-blue">TCP</span>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="ar-empty">No TCP traffic.</div>
+    {% endif %}
+
+</div>

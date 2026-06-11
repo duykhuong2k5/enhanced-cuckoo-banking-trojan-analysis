@@ -1,0 +1,223 @@
+<section id="static_analysis">
+
+{% if report.analysis.static %}
+
+    <div class="ar-kv-grid">
+
+        {% if report.analysis.static.pe_timestamp %}
+        <div class="ar-kv-box">
+            <span>PE compile time</span>
+            <strong>{{ report.analysis.static.pe_timestamp }}</strong>
+        </div>
+        {% endif %}
+
+        {% if report.analysis.static.pe_imphash %}
+        <div class="ar-kv-box">
+            <span>PE imphash</span>
+            <strong class="ar-mono">{{ report.analysis.static.pe_imphash }}</strong>
+        </div>
+        {% endif %}
+
+        {% if report.analysis.static.pdb_path %}
+        <div class="ar-kv-box">
+            <span>PDB path</span>
+            <strong class="ar-mono">{{ report.analysis.static.pdb_path }}</strong>
+        </div>
+        {% endif %}
+
+    </div>
+
+    {% if report.analysis.static.signature %}
+    <h3 class="ar-subtitle">Signing certificate</h3>
+
+    {% for cert in report.analysis.static.signature %}
+    <table class="ar-static-table">
+        <tbody>
+            <tr>
+                <th style="width: 180px;">MD5</th>
+                <td class="ar-mono">{{ cert.md5 }}</td>
+            </tr>
+            <tr>
+                <th>SHA1</th>
+                <td class="ar-mono">{{ cert.sha1 }}</td>
+            </tr>
+            <tr>
+                <th>Serial number</th>
+                <td class="ar-mono">{{ cert.serial_number }}</td>
+            </tr>
+            <tr>
+                <th>Common name</th>
+                <td>{{ cert.common_name }}</td>
+            </tr>
+            <tr>
+                <th>Country</th>
+                <td>{{ cert.country }}</td>
+            </tr>
+            <tr>
+                <th>Locality</th>
+                <td>{{ cert.locality }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% endfor %}
+    {% endif %}
+
+    {% if report.analysis.static.pe_versioninfo %}
+    <h3 class="ar-subtitle">Version information</h3>
+
+    <table class="ar-static-table">
+        <tbody>
+        {% for info in report.analysis.static.pe_versioninfo %}
+            <tr>
+                <th style="width: 220px;">{{ info.name }}</th>
+                <td class="ar-mono">{{ info.value }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if report.analysis.static.peid_signatures %}
+    <h3 class="ar-subtitle">PEiD / packer signatures</h3>
+
+    <table class="ar-static-table">
+        <thead>
+            <tr>
+                <th>Signature</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for sig in report.analysis.static.peid_signatures %}
+            <tr>
+                <td>
+                    <span class="ar-pill ar-pill-orange">{{ sig }}</span>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if report.analysis.static.pe_sections %}
+    <h3 class="ar-subtitle">Sections</h3>
+
+    <table class="ar-static-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Virtual address</th>
+                <th>Virtual size</th>
+                <th>Raw data size</th>
+                <th>Entropy</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for section in report.analysis.static.pe_sections %}
+            <tr>
+                <td><strong>{{ section.name }}</strong></td>
+                <td class="ar-mono">{{ section.virtual_address }}</td>
+                <td class="ar-mono">{{ section.virtual_size }}</td>
+                <td class="ar-mono">{{ section.size_of_data }}</td>
+                <td>
+                    {% if section.entropy %}
+                        {% if section.entropy >= 7 %}
+                            <span class="ar-pill ar-pill-red">{{ section.entropy }}</span>
+                        {% elif section.entropy >= 6 %}
+                            <span class="ar-pill ar-pill-orange">{{ section.entropy }}</span>
+                        {% else %}
+                            <span class="ar-pill ar-pill-green">{{ section.entropy }}</span>
+                        {% endif %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if report.analysis.static.pe_resources %}
+    <h3 class="ar-subtitle">Resources</h3>
+
+    <table class="ar-static-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Offset</th>
+                <th>Size</th>
+                <th>Language</th>
+                <th>Sub-language</th>
+                <th>File type</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for section in report.analysis.static.pe_resources %}
+            <tr>
+                <td>{{ section.name }}</td>
+                <td class="ar-mono">{{ section.offset }}</td>
+                <td class="ar-mono">{{ section.size }}</td>
+                <td>{{ section.language }}</td>
+                <td>{{ section.sublanguage }}</td>
+                <td>{{ section.filetype }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if report.analysis.static.pe_imports %}
+    <h3 class="ar-subtitle">Imports</h3>
+
+    <div class="ar-import-grid">
+    {% for library in report.analysis.static.pe_imports %}
+        <div class="ar-import-box">
+            <div class="ar-import-title">
+                <i class="fa fa-code"></i>
+                {{ library.dll }}
+            </div>
+
+            {% for function in library.imports %}
+                <div class="ar-mono">
+                    • {{ function.address }}
+                    <a target="_blank" href="http://social.msdn.microsoft.com/Search/en-US/windows/desktop?query={{ function.name }}">
+                        {{ function.name }}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if report.analysis.static.pe_exports %}
+    <h3 class="ar-subtitle">Exports</h3>
+
+    <table class="ar-static-table">
+        <thead>
+            <tr>
+                <th>Ordinal</th>
+                <th>Address</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for export in report.analysis.static.pe_exports %}
+            <tr>
+                <td>{{ export.ordinal }}</td>
+                <td class="ar-mono">{{ export.address }}</td>
+                <td>{{ export.name }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+{% else %}
+    <div class="ar-empty">Nothing to display.</div>
+{% endif %}
+
+</section>

@@ -1,0 +1,21 @@
+{% load analysis_tags %}
+
+<section class="ar-card ar-summary-behavior-graph">
+
+    <div class="ar-section-header">
+        <h2>Behavior graph</h2>
+        <label class="ar-print-check">
+            <input type="checkbox" checked>
+            Add for printing
+        </label>
+    </div>
+
+    {% include "analysis/pages/behavior/_tree.html" %}
+
+</section>
+
+<style>
+.ar-summary-behavior-graph {
+    margin-top: 24px;
+}
+</style>

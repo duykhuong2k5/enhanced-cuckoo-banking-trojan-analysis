@@ -1,0 +1,39 @@
+<li class="ar-summary-tree-node">
+
+    <div class="ar-summary-process-card {% if not process.ppid or process.ppid == 0 %}ar-root-process{% endif %}">
+        <div>
+            <span class="ar-summary-process-name">
+                <i class="fa fa-cog"></i>
+                {{ process.process_name|default:"unknown" }}
+            </span>
+
+            <span class="ar-summary-process-pid">
+                PID {{ process.pid }}
+                {% if process.ppid %}
+                    / PPID {{ process.ppid }}
+                {% endif %}
+            </span>
+        </div>
+
+        {% if process.command_line %}
+        <div class="ar-summary-process-cmd">
+            {{ process.command_line }}
+        </div>
+        {% endif %}
+
+        <a class="ar-summary-process-link" href="{% url "analysis" report.analysis.info.id "behavior" %}">
+            Open behavior details
+        </a>
+    </div>
+
+    {% if process.children %}
+        <ul>
+            {% for child in process.children %}
+                {% with process=child template_name="analysis/pages/summary/_process_tree_process.html" %}
+                    {% include template_name %}
+                {% endwith %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+</li>

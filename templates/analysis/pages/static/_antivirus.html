@@ -1,0 +1,54 @@
+<section id="static_antivirus">
+
+{% if report.analysis.virustotal and report.analysis.virustotal.response_code %}
+
+    <table class="ar-static-table">
+        <thead>
+            <tr>
+                <th style="width: 260px;">Antivirus</th>
+                {% if report.analysis.info.category == "file" %}
+                    <th>Signature</th>
+                {% else %}
+                    <th>Result</th>
+                {% endif %}
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for av, values in report.analysis.virustotal.scans.items %}
+            <tr>
+                <td><strong>{{ av }}</strong></td>
+
+                <td>
+                    {% if report.analysis.info.category == "file" %}
+                        {% if not values.result %}
+                            <span class="ar-pill ar-pill-green">Clean</span>
+                        {% else %}
+                            <span class="ar-pill ar-pill-red">{{ values.result }}</span>
+                        {% endif %}
+                    {% else %}
+                        {% if not values.detected %}
+                            <span class="ar-pill ar-pill-green">{{ values.result|title|default:"Clean" }}</span>
+                        {% else %}
+                            <span class="ar-pill ar-pill-red">{{ values.result|title }}</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% else %}
+
+    {% if report.analysis.virustotal.summary.permalink %}
+        <a target="_blank" class="ar-pill ar-pill-blue" href="{{ report.analysis.virustotal.summary.permalink }}">
+            VirusTotal analysis pending
+        </a>
+    {% else %}
+        <div class="ar-empty">No antivirus signatures available.</div>
+    {% endif %}
+
+{% endif %}
+
+</section>

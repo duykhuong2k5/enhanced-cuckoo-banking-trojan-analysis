@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load analysis_tags %}
+{% block content %}
+
+<div class="flex-nav ar-anyrun-shell">
+    {% include "analysis/pages/nav-sidebar.html" %}
+
+    <section class="flex-nav__body cuckoo-analysis" tabindex="0">
+
+        <header class="page-header cuckoo-analysis__header ar-page-header">
+            <h1>Static information</h1>
+        </header>
+
+        <div class="container-fluid ar-static-container">
+
+            <div class="ar-metric-grid">
+                <div class="ar-metric-card">
+                    <span>File type</span>
+                    <strong>
+                        {% if "PE32" in report.analysis.target.file.type %}
+                            PE32
+                        {% elif "ELF" in report.analysis.target.file.type %}
+                            ELF
+                        {% elif "pdf" in report.analysis.static %}
+                            PDF
+                        {% elif "office" in report.analysis.static %}
+                            Office
+                        {% else %}
+                            Unknown
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>Strings</span>
+                    <strong>{{ report.analysis.strings|length }}</strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>Imports</span>
+                    <strong>{{ report.analysis.static.pe_imports|length }}</strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>Sections</span>
+                    <strong>{{ report.analysis.static.pe_sections|length }}</strong>
+                </div>
+            </div>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>Static information</h2>
+                    <span class="ar-section-subtitle">File metadata, PE header, sections, imports and resources</span>
+                </div>
+
+                {% if "PE32" in report.analysis.target.file.type %}
+                    {% include "analysis/pages/static/_pe32.html" %}
+                {% elif "MS-DOS executable" in report.analysis.target.file.type %}
+                    {% for sig in report.analysis.static.peid_signatures %}
+                        {% if forloop.first and "FSG" in sig %}
+                            {% include "analysis/pages/static/_pe32.html" %}
+                        {% endif %}
+                    {% endfor %}
+                {% elif "ELF" in report.analysis.target.file.type %}
+                    {% include "analysis/pages/static/_elf.html" %}
+                {% elif "office" in report.analysis.static %}
+                    {% include "analysis/pages/static/_office.html" %}
+                {% elif "pdf" in report.analysis.static %}
+                    {% include "analysis/pages/static/_pdf.html" %}
+                {% else %}
+                    <div class="ar-empty">No static analysis available.</div>
+                {% endif %}
+            </section>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>Antivirus</h2>
+                    <span class="ar-section-subtitle">VirusTotal or antivirus detections</span>
+                </div>
+
+                {% include "analysis/pages/static/_antivirus.html" %}
+            </section>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>Strings</h2>
+                    <span class="ar-section-subtitle">Extracted printable strings from the sample</span>
+                </div>
+
+                {% include "analysis/pages/static/_strings.html" %}
+            </section>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>IRMA</h2>
+                    <span class="ar-section-subtitle">IRMA scan results if available</span>
+                </div>
+
+                {% include "analysis/pages/static/_irma.html" %}
+            </section>
+
+        </div>
+
+        <footer class="flex-grid__footer center-left">
+            <p class="footnote">
+                &copy;2010-2018 <a href="https://www.cuckoosandbox.org" target="_blank">Cuckoo Sandbox</a>
+            </p>
+            <div class="logo">
+                <img src="{% static "graphic/cuckoo_inverse.png" %}" alt="Cuckoo Malware Analysis Sandbox" />
+                <a href="#">Back to Top</a>
+            </div>
+        </footer>
+
+    </section>
+</div>
+
+<style>
+.ar-static-container {
+    padding-top: 18px;
+}
+
+.ar-page-header h1 {
+    font-size: 30px;
+    font-weight: 700;
+    color: #24364f;
+}
+
+.ar-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.ar-metric-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #24364f;
+    padding: 14px;
+    border-radius: 3px;
+}
+
+.ar-metric-card span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.ar-metric-card strong {
+    display: block;
+    font-size: 24px;
+    color: #111827;
+    margin-top: 6px;
+    word-break: break-word;
+}
+
+.ar-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    padding: 18px;
+    margin-bottom: 24px;
+}
+
+.ar-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 2px solid #2d3748;
+    margin-bottom: 16px;
+}
+
+.ar-section-header h2 {
+    font-size: 26px;
+    color: #24364f;
+    font-weight: 700;
+    margin: 0 0 7px 0;
+}
+
+.ar-section-subtitle {
+    color: #64748b;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.ar-static-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+}
+
+.ar-static-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 10px;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.ar-static-table td {
+    padding: 10px;
+    font-size: 12px;
+    color: #1f2937;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+.ar-subtitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: #24364f;
+    margin: 20px 0 10px 0;
+}
+
+.ar-kv-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.ar-kv-box {
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 3px;
+}
+
+.ar-kv-box span {
+    display: block;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.ar-kv-box strong {
+    color: #111827;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+.ar-mono {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    word-break: break-all;
+}
+
+.ar-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 11px;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 11px;
+    margin: 2px;
+}
+
+.ar-pill-red {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.ar-pill-green {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.ar-pill-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.ar-pill-orange {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.ar-empty {
+    padding: 14px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+.ar-import-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.ar-import-box {
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 3px;
+    max-height: 320px;
+    overflow: auto;
+}
+
+.ar-import-title {
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.ar-string-box {
+    max-height: 520px;
+    overflow: auto;
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 14px;
+    border-radius: 3px;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.ar-string-line {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 2px 0;
+    word-break: break-all;
+}
+
+@media (max-width: 1100px) {
+    .ar-metric-grid,
+    .ar-kv-grid,
+    .ar-import-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .ar-metric-grid,
+    .ar-kv-grid,
+    .ar-import-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ar-section-header {
+        display: block;
+    }
+}
+</style>
+
+{% endblock %}

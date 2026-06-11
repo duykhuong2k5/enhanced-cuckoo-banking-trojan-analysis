@@ -1,0 +1,516 @@
+{% load analysis_tags %}
+
+<section id="summary-signatures" class="ar-card ar-behavior-activities">
+
+    <div class="ar-section-header">
+        <h2>Behavior activities</h2>
+        <label class="ar-print-check">
+            <input type="checkbox" checked>
+            Add for printing
+        </label>
+    </div>
+
+    {% if report.analysis.signatures %}
+
+    <div class="ar-activity-grid">
+
+        <!-- MALICIOUS -->
+        <div class="ar-activity-column ar-col-malicious">
+            <h3>MALICIOUS</h3>
+
+            {% for signature in report.analysis.signatures %}
+                {% if signature.severity >= 3 %}
+                <div class="ar-signature-item ar-danger-item">
+
+                    <a href="#signature_m_{{ forloop.counter }}" class="ar-signature-title" data-toggle="collapse">
+                        {{ signature.description }}
+                    </a>
+
+                    <div class="ar-signature-meta">
+                        <span class="ar-sev-badge ar-sev-danger">Severity {{ signature.severity }}</span>
+
+                        {% if signature.marks %}
+                            <span class="ar-event-count">
+                                {% if signature.marks|length == 1 %}
+                                    1 event
+                                {% elif signature.markcount and signature.markcount != signature.marks|length %}
+                                    {{ signature.marks|length }} / {{ signature.markcount }} events
+                                {% else %}
+                                    {{ signature.marks|length }} events
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="collapse ar-signature-details" id="signature_m_{{ forloop.counter }}">
+                        {% if signature.name %}
+                        <div class="ar-detail-row">
+                            <span class="ar-detail-key">Signature</span>
+                            <span class="ar-detail-value ar-mono">{{ signature.name }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if signature.marks %}
+                            {% for mark in signature.marks|sigsort %}
+                                <div class="ar-mark-box">
+
+                                    {% if mark.type == "call" %}
+                                        <div class="ar-detail-row">
+                                            <span class="ar-detail-key">API call</span>
+                                            <span class="ar-detail-value">
+                                                {% if mark.pid %}PID {{ mark.pid }}{% endif %}
+                                                {% if mark.call.api %}
+                                                    <code>{{ mark.call.api }}</code>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+
+                                        {% if mark.call.arguments %}
+                                        <pre class="ar-pre">{{ mark.call.arguments }}</pre>
+                                        {% endif %}
+
+                                    {% elif mark.type == "ioc" %}
+                                        <div class="ar-detail-row">
+                                            <span class="ar-detail-key">{{ mark.category }}</span>
+                                            <span class="ar-detail-value ar-mono">{{ mark.ioc }}</span>
+                                        </div>
+
+                                        {% if mark.description %}
+                                        <div class="ar-detail-desc">{{ mark.description }}</div>
+                                        {% endif %}
+
+                                    {% elif mark.type == "generic" %}
+                                        {% for key, value in mark.items %}
+                                            {% if key != "type" %}
+                                            <div class="ar-detail-row">
+                                                <span class="ar-detail-key">{{ key }}</span>
+                                                <span class="ar-detail-value">{{ value }}</span>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="ar-empty">No detailed events</div>
+                        {% endif %}
+                    </div>
+
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- SUSPICIOUS -->
+        <div class="ar-activity-column ar-col-suspicious">
+            <h3>SUSPICIOUS</h3>
+
+            {% for signature in report.analysis.signatures %}
+                {% if signature.severity == 2 %}
+                <div class="ar-signature-item ar-warning-item">
+
+                    <a href="#signature_s_{{ forloop.counter }}" class="ar-signature-title" data-toggle="collapse">
+                        {{ signature.description }}
+                    </a>
+
+                    <div class="ar-signature-meta">
+                        <span class="ar-sev-badge ar-sev-warning">Severity {{ signature.severity }}</span>
+
+                        {% if signature.marks %}
+                            <span class="ar-event-count">
+                                {% if signature.marks|length == 1 %}
+                                    1 event
+                                {% elif signature.markcount and signature.markcount != signature.marks|length %}
+                                    {{ signature.marks|length }} / {{ signature.markcount }} events
+                                {% else %}
+                                    {{ signature.marks|length }} events
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="collapse ar-signature-details" id="signature_s_{{ forloop.counter }}">
+                        {% if signature.name %}
+                        <div class="ar-detail-row">
+                            <span class="ar-detail-key">Signature</span>
+                            <span class="ar-detail-value ar-mono">{{ signature.name }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if signature.marks %}
+                            {% for mark in signature.marks|sigsort %}
+                                <div class="ar-mark-box">
+
+                                    {% if mark.type == "call" %}
+                                        <div class="ar-detail-row">
+                                            <span class="ar-detail-key">API call</span>
+                                            <span class="ar-detail-value">
+                                                {% if mark.pid %}PID {{ mark.pid }}{% endif %}
+                                                {% if mark.call.api %}
+                                                    <code>{{ mark.call.api }}</code>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+
+                                        {% if mark.call.arguments %}
+                                        <pre class="ar-pre">{{ mark.call.arguments }}</pre>
+                                        {% endif %}
+
+                                    {% elif mark.type == "ioc" %}
+                                        <div class="ar-detail-row">
+                                            <span class="ar-detail-key">{{ mark.category }}</span>
+                                            <span class="ar-detail-value ar-mono">{{ mark.ioc }}</span>
+                                        </div>
+
+                                        {% if mark.description %}
+                                        <div class="ar-detail-desc">{{ mark.description }}</div>
+                                        {% endif %}
+
+                                    {% elif mark.type == "generic" %}
+                                        {% for key, value in mark.items %}
+                                            {% if key != "type" %}
+                                            <div class="ar-detail-row">
+                                                <span class="ar-detail-key">{{ key }}</span>
+                                                <span class="ar-detail-value">{{ value }}</span>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="ar-empty">No detailed events</div>
+                        {% endif %}
+                    </div>
+
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- INFO -->
+        <div class="ar-activity-column ar-col-info">
+            <h3>INFO</h3>
+
+            {% for signature in report.analysis.signatures %}
+                {% if signature.severity <= 1 %}
+                <div class="ar-signature-item ar-info-item">
+
+                    <a href="#signature_i_{{ forloop.counter }}" class="ar-signature-title" data-toggle="collapse">
+                        {{ signature.description }}
+                    </a>
+
+                    <div class="ar-signature-meta">
+                        <span class="ar-sev-badge ar-sev-info">Severity {{ signature.severity }}</span>
+
+                        {% if signature.marks %}
+                            <span class="ar-event-count">
+                                {% if signature.marks|length == 1 %}
+                                    1 event
+                                {% elif signature.markcount and signature.markcount != signature.marks|length %}
+                                    {{ signature.marks|length }} / {{ signature.markcount }} events
+                                {% else %}
+                                    {{ signature.marks|length }} events
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="collapse ar-signature-details" id="signature_i_{{ forloop.counter }}">
+                        {% if signature.name %}
+                        <div class="ar-detail-row">
+                            <span class="ar-detail-key">Signature</span>
+                            <span class="ar-detail-value ar-mono">{{ signature.name }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if signature.marks %}
+                            {% for mark in signature.marks|sigsort %}
+                                <div class="ar-mark-box">
+
+                                    {% if mark.type == "call" %}
+                                        <div class="ar-detail-row">
+                                            <span class="ar-detail-key">API call</span>
+                                            <span class="ar-detail-value">
+                                                {% if mark.pid %}PID {{ mark.pid }}{% endif %}
+                                                {% if mark.call.api %}
+                                                    <code>{{ mark.call.api }}</code>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+
+                                        {% if mark.call.arguments %}
+                                        <pre class="ar-pre">{{ mark.call.arguments }}</pre>
+                                        {% endif %}
+
+                                    {% elif mark.type == "ioc" %}
+                                        <div class="ar-detail-row">
+                                            <span class="ar-detail-key">{{ mark.category }}</span>
+                                            <span class="ar-detail-value ar-mono">{{ mark.ioc }}</span>
+                                        </div>
+
+                                        {% if mark.description %}
+                                        <div class="ar-detail-desc">{{ mark.description }}</div>
+                                        {% endif %}
+
+                                    {% elif mark.type == "generic" %}
+                                        {% for key, value in mark.items %}
+                                            {% if key != "type" %}
+                                            <div class="ar-detail-row">
+                                                <span class="ar-detail-key">{{ key }}</span>
+                                                <span class="ar-detail-value">{{ value }}</span>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="ar-empty">No detailed events</div>
+                        {% endif %}
+                    </div>
+
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+
+    {% else %}
+        <p class="ar-empty">No signatures</p>
+    {% endif %}
+
+</section>
+
+<style>
+.ar-behavior-activities {
+    margin-top: 24px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.ar-behavior-activities .ar-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #2d3748;
+    margin-bottom: 18px;
+}
+
+.ar-behavior-activities .ar-section-header h2 {
+    font-size: 28px;
+    line-height: 1.2;
+    color: #24364f;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+}
+
+.ar-print-check {
+    font-size: 12px;
+    color: #24364f;
+    font-weight: 600;
+    margin: 0;
+}
+
+.ar-activity-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+}
+
+.ar-activity-column {
+    min-width: 0;
+}
+
+.ar-activity-column h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #5f6f82;
+    margin: 0 0 12px 0;
+    padding-bottom: 7px;
+    text-transform: uppercase;
+}
+
+.ar-col-malicious h3 {
+    border-bottom: 2px solid #ef4444;
+}
+
+.ar-col-suspicious h3 {
+    border-bottom: 2px solid #f97316;
+}
+
+.ar-col-info h3 {
+    border-bottom: 2px solid #0ea5e9;
+}
+
+.ar-signature-item {
+    margin-bottom: 14px;
+    padding: 0 0 11px 0;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.ar-signature-title {
+    display: block;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-decoration: none;
+}
+
+.ar-signature-title:hover {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+.ar-danger-item .ar-signature-title:before {
+    content: "• ";
+    color: #ef4444;
+}
+
+.ar-warning-item .ar-signature-title:before {
+    content: "• ";
+    color: #f97316;
+}
+
+.ar-info-item .ar-signature-title:before {
+    content: "• ";
+    color: #0ea5e9;
+}
+
+.ar-signature-meta {
+    margin-top: 4px;
+    color: #718096;
+    font-size: 11px;
+}
+
+.ar-sev-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    margin-right: 5px;
+}
+
+.ar-sev-danger {
+    background: #ef4444;
+}
+
+.ar-sev-warning {
+    background: #f97316;
+}
+
+.ar-sev-info {
+    background: #0ea5e9;
+}
+
+.ar-event-count {
+    color: #64748b;
+}
+
+.ar-signature-details {
+    margin-top: 9px;
+    padding: 9px;
+    background: #f8fafc;
+    border: 1px solid #dbeafe;
+    border-radius: 3px;
+}
+
+.ar-mark-box {
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.ar-mark-box:last-child {
+    border-bottom: 0;
+}
+
+.ar-detail-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+.ar-detail-key {
+    flex: 0 0 95px;
+    color: #475569;
+    font-weight: 700;
+    word-break: break-word;
+}
+
+.ar-detail-value {
+    flex: 1;
+    color: #0f172a;
+    word-break: break-word;
+}
+
+.ar-detail-desc {
+    color: #475569;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.ar-mono,
+.ar-detail-value code {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+}
+
+.ar-detail-value code {
+    display: inline-block;
+    background: #e2e8f0;
+    padding: 1px 5px;
+    border-radius: 2px;
+    color: #111827;
+    margin-left: 4px;
+}
+
+.ar-pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    margin: 6px 0 0 0;
+    max-height: 220px;
+    overflow: auto;
+}
+
+.ar-empty {
+    color: #718096;
+    font-size: 13px;
+    padding: 8px 0;
+}
+
+@media max-width {
+}
+
+@media (max-width: 1100px) {
+    .ar-activity-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    .ar-print-check {
+        display: none;
+    }
+
+    .ar-signature-details {
+        display: block !important;
+        height: auto !important;
+    }
+
+    .ar-signature-item {
+        page-break-inside: avoid;
+    }
+}
+</style>

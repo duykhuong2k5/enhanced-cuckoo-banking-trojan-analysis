@@ -1,0 +1,76 @@
+{
+    "template": "cuckoo-*",
+    "settings": {
+        "index": {
+            "mapping.coerce": true,
+            "number_of_shards": "1",
+            "codec": "best_compression",
+            "number_of_replicas": "0"
+        }
+    },
+    "mappings": {
+        "cuckoo": {
+            "date_detection": false,
+            "dynamic_templates": [
+                {
+                    "not_analyzed": {
+                        "mapping": {
+                            "type": "keyword",
+                            "ignore_above": 32766
+                        },
+                        "match_mapping_type": "string",
+                        "match": "*"
+                    }
+                }
+            ],
+            "properties": {
+                "report_time": {
+                    "format": "epoch_second",
+                    "type": "date"
+                },
+                "verdict": {
+                    "type": "keyword"
+                },
+                "analysis_date": {
+                    "type": "date",
+                    "format": "yyyy-MM-dd'T'HH:mm:ss"
+                },
+                "tags": {
+                    "type": "keyword"
+                },
+                "indicators": {
+                    "properties": {
+                        "mime": {"type": "keyword"},
+                        "file_info": {"type": "text"},
+                        "md5": {"type": "keyword"},
+                        "sha1": {"type": "keyword"},
+                        "sha256": {"type": "keyword"},
+                        "ssdeep": {"type": "keyword"}
+                    }
+                },
+                "behavior_activities": {
+                    "properties": {
+                        "malicious": {"type": "nested"},
+                        "suspicious": {"type": "nested"},
+                        "info": {"type": "nested"}
+                    }
+                },
+                "procmemory": {
+                    "type": "nested",
+                    "properties": {
+                        "regions": {"type": "nested"}
+                    }
+                },
+                "signatures": {
+                    "type": "nested",
+                    "properties": {
+                        "name": {"type": "keyword"},
+                        "description": {"type": "text"},
+                        "severity": {"type": "integer"},
+                        "marks": {"type": "nested"}
+                    }
+                }
+            }
+        }
+    }
+}

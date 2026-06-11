@@ -1,0 +1,59 @@
+{% load analysis_tags %}
+
+<div class="ar-network-block" id="dns-requests">
+
+    {% if report.analysis.network.dns %}
+
+    <table class="ar-net-table">
+        <thead>
+            <tr>
+                <th style="width: 45%;">Domain</th>
+                <th>Response</th>
+                <th style="width: 25%;">Post-analysis lookup</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for p in report.analysis.network.dns %}
+            <tr>
+                <td>
+                    <a target="_blank" href="{% url "analysis.views.moloch" host=p.request %}">
+                        <span class="ar-mono">{{ p.request }}</span>
+                    </a>
+                </td>
+
+                <td>
+                    {% if p.answers %}
+                        {% for a in p.answers %}
+                            <span class="ar-pill ar-pill-blue">
+                                {% include "partials/dns-badge.html" with a=a %}
+                            </span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="ar-pill ar-pill-orange">No answer</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if report.domainlookups|get_item:p.request %}
+                        {% if ":" not in report.domainlookups|get_item:p.request %}
+                            <a target="_blank" href="{% url "analysis.views.moloch" ip=report.domainlookups|get_item:p.request %}">
+                                <span class="ar-mono">{{ report.domainlookups|get_item:p.request }}</span>
+                            </a>
+                        {% else %}
+                            <span class="ar-mono">{{ report.domainlookups|get_item:p.request }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="ar-muted">N/A</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="ar-empty">No DNS requests.</div>
+    {% endif %}
+
+</div>

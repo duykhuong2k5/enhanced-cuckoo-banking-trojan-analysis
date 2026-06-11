@@ -1,0 +1,297 @@
+{% load analysis_tags %}
+
+<section class="ar-card ar-summary-threats">
+
+    <div class="ar-section-header">
+        <h2>Threats</h2>
+        <label class="ar-print-check">
+            <input type="checkbox" checked>
+            Add for printing
+        </label>
+    </div>
+
+    <table class="ar-anyrun-threat-table">
+        <thead>
+            <tr>
+                <th style="width: 80px;">PID</th>
+                <th style="width: 260px;">Process</th>
+                <th style="width: 260px;">Class</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% if report.analysis.suricata.alerts %}
+
+            {% for alert in report.analysis.suricata.alerts %}
+            <tr>
+                <td>
+                    <span class="ar-muted">N/A</span>
+                </td>
+
+                <td>
+                    <span class="ar-muted">Network traffic</span>
+                </td>
+
+                <td>
+                    <span class="ar-threat-badge ar-threat-red">
+                        A Network Trojan was detected
+                    </span>
+                </td>
+
+                <td>
+                    <strong>{{ alert.signature }}</strong>
+
+                    <div class="ar-threat-flow">
+                        {{ alert.protocol }}
+                        {{ alert.src_ip }}{% if alert.src_port %}:{{ alert.src_port }}{% endif %}
+                        →
+                        {{ alert.dst_ip }}{% if alert.dst_port %}:{{ alert.dst_port }}{% endif %}
+
+                        {% if alert.category %}
+                            <span class="ar-muted"> / {{ alert.category }}</span>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+
+        {% endif %}
+
+
+        {% if report.analysis.snort.alerts %}
+
+            {% for alert in report.analysis.snort.alerts %}
+            <tr>
+                <td>
+                    <span class="ar-muted">N/A</span>
+                </td>
+
+                <td>
+                    <span class="ar-muted">Network traffic</span>
+                </td>
+
+                <td>
+                    <span class="ar-threat-badge ar-threat-red">
+                        A Network Trojan was detected
+                    </span>
+                </td>
+
+                <td>
+                    <strong>{{ alert.message }}</strong>
+
+                    <div class="ar-threat-flow">
+                        {{ alert.protocol }}
+                        {{ alert.src_ip }}{% if alert.src_port %}:{{ alert.src_port }}{% endif %}
+                        →
+                        {{ alert.dst_ip }}{% if alert.dst_port %}:{{ alert.dst_port }}{% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+
+        {% endif %}
+
+
+        {% if not report.analysis.suricata.alerts and not report.analysis.snort.alerts %}
+
+            {% for signature in report.analysis.signatures %}
+
+                {% if signature.severity >= 2 %}
+
+                    {% if signature.marks %}
+
+                        {% for mark in signature.marks|sigsort %}
+
+                            {% if mark.pid %}
+                            <tr>
+                                <td>
+                                    <strong>{{ mark.pid }}</strong>
+                                </td>
+
+                                <td>
+                                    {{ mark.pid|process_name:report.analysis }}
+                                </td>
+
+                                <td>
+                                    {% if signature.severity >= 3 %}
+                                        {% if "Communicates" in signature.description or "network" in signature.name or "host" in signature.description or "DNS" in signature.description %}
+                                            <span class="ar-threat-badge ar-threat-red">
+                                                A Network Trojan was detected
+                                            </span>
+                                        {% else %}
+                                            <span class="ar-threat-badge ar-threat-red">
+                                                Malicious behavior was detected
+                                            </span>
+                                        {% endif %}
+                                    {% elif signature.severity == 2 %}
+                                        <span class="ar-threat-badge ar-threat-orange">
+                                            Suspicious behavior was detected
+                                        </span>
+                                    {% else %}
+                                        <span class="ar-threat-badge ar-threat-blue">
+                                            Informational behavior
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <strong>{{ signature.description }}</strong>
+
+                                    {% if signature.name %}
+                                    <div class="ar-threat-flow">
+                                        Signature: {{ signature.name }}
+                                    </div>
+                                    {% endif %}
+
+                                    {% if mark.type == "ioc" %}
+                                    <div class="ar-threat-flow">
+                                        IOC: {{ mark.category }} - {{ mark.ioc }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <tr>
+                            <td>
+                                <span class="ar-muted">N/A</span>
+                            </td>
+
+                            <td>
+                                <span class="ar-muted">N/A</span>
+                            </td>
+
+                            <td>
+                                {% if signature.severity >= 3 %}
+                                    <span class="ar-threat-badge ar-threat-red">
+                                        Malicious behavior was detected
+                                    </span>
+                                {% elif signature.severity == 2 %}
+                                    <span class="ar-threat-badge ar-threat-orange">
+                                        Suspicious behavior was detected
+                                    </span>
+                                {% else %}
+                                    <span class="ar-threat-badge ar-threat-blue">
+                                        Informational behavior
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <strong>{{ signature.description }}</strong>
+
+                                {% if signature.name %}
+                                <div class="ar-threat-flow">
+                                    Signature: {{ signature.name }}
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
+                {% endif %}
+
+            {% endfor %}
+
+        {% endif %}
+
+        </tbody>
+    </table>
+
+    <div class="ar-threat-note">
+        {% if not report.analysis.suricata.alerts and not report.analysis.snort.alerts %}
+            IDS alerts were not available, so this table was generated from Cuckoo behavior signatures.
+        {% else %}
+            Threats were generated from IDS alerts and Cuckoo network analysis.
+        {% endif %}
+    </div>
+
+</section>
+
+<style>
+.ar-summary-threats {
+    margin-top: 24px;
+}
+
+.ar-anyrun-threat-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #dbe5ef;
+}
+
+.ar-anyrun-threat-table th {
+    background: #e9eef3;
+    color: #334155;
+    font-size: 12px;
+    text-transform: none;
+    padding: 10px 12px;
+    border-bottom: 1px solid #cbd5e1;
+    vertical-align: top;
+}
+
+.ar-anyrun-threat-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #1f2937;
+    border-bottom: 1px solid #dbe5ef;
+    vertical-align: top;
+}
+
+.ar-anyrun-threat-table tr:nth-child(even) td {
+    background: #f8fafc;
+}
+
+.ar-threat-badge {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 2px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.ar-threat-red {
+    background: #ef4444;
+}
+
+.ar-threat-orange {
+    background: #f97316;
+}
+
+.ar-threat-blue {
+    background: #0ea5e9;
+}
+
+.ar-threat-flow {
+    margin-top: 5px;
+    color: #64748b;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    word-break: break-all;
+}
+
+.ar-muted {
+    color: #94a3b8;
+}
+
+.ar-threat-note {
+    margin-top: 10px;
+    color: #64748b;
+    font-size: 12px;
+    font-style: italic;
+}
+
+@media print {
+    .ar-summary-threats {
+        page-break-inside: avoid;
+    }
+}
+</style>

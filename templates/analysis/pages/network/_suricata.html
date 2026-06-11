@@ -1,0 +1,120 @@
+{% load analysis_tags %}
+
+<div class="ar-threat-block">
+
+    <h3 class="ar-threat-title">
+        <i class="fa fa-exclamation-triangle"></i>
+        Suricata Alerts
+    </h3>
+
+    {% if report.analysis.suricata.alerts %}
+
+    <table class="ar-net-table">
+        <thead>
+            <tr>
+                <th>Flow</th>
+                <th style="width: 100px;">SID</th>
+                <th>Signature</th>
+                <th style="width: 220px;">Category</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for alert in report.analysis.suricata.alerts %}
+            <tr>
+                <td>
+                    <div class="ar-flow">
+                        <span class="ar-pill ar-pill-red">{{ alert.protocol }}</span>
+                        <br>
+                        <a target="_blank" href="{% url "analysis.views.moloch" src_ip=alert.src_ip src_port=alert.src_port %}">
+                            {{ alert.src_ip }}:{{ alert.src_port }}
+                        </a>
+                        <span class="ar-arrow">→</span>
+                        <a target="_blank" href="{% url "analysis.views.moloch" dst_ip=alert.dst_ip dst_port=alert.dst_port %}">
+                            {{ alert.dst_ip }}:{{ alert.dst_port }}
+                        </a>
+                    </div>
+                </td>
+
+                <td>
+                    <a target="_blank" href="{% url "analysis.views.moloch" sid=alert.sid %}">
+                        <span class="ar-mono">{{ alert.sid }}</span>
+                    </a>
+                </td>
+
+                <td>
+                    <strong>{{ alert.signature }}</strong>
+                </td>
+
+                <td>
+                    <span class="ar-pill ar-pill-orange">{{ alert.category }}</span>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="ar-empty">No Suricata alerts.</div>
+    {% endif %}
+
+
+    <h3 class="ar-threat-title ar-threat-tls">
+        <i class="fa fa-lock"></i>
+        Suricata TLS
+    </h3>
+
+    {% if report.analysis.suricata.tls %}
+
+    <table class="ar-net-table">
+        <thead>
+            <tr>
+                <th>Flow</th>
+                <th>Issuer</th>
+                <th>Subject</th>
+                <th style="width: 260px;">Fingerprint</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for tls in report.analysis.suricata.tls %}
+            <tr>
+                <td>
+                    <span class="ar-pill ar-pill-blue">{{ tls.version }}</span>
+                    <div class="ar-flow">
+                        <a target="_blank" href="{% url "analysis.views.moloch" src_ip=tls.src_ip src_port=tls.src_port %}">
+                            {{ tls.src_ip }}:{{ tls.src_port }}
+                        </a>
+                        <br>
+                        <a target="_blank" href="{% url "analysis.views.moloch" dst_ip=tls.dst_ip dst_port=tls.dst_port %}">
+                            {{ tls.dst_ip }}:{{ tls.dst_port }}
+                        </a>
+                    </div>
+                </td>
+
+                <td>{{ tls.issuer|default:"N/A" }}</td>
+                <td>{{ tls.subject|default:"N/A" }}</td>
+                <td><span class="ar-mono">{{ tls.fingerprint|default:"N/A" }}</span></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="ar-empty">No Suricata TLS entries.</div>
+    {% endif %}
+
+</div>
+
+<style>
+.ar-threat-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #24364f;
+    margin: 0 0 12px 0;
+}
+
+.ar-threat-tls {
+    margin-top: 24px;
+}
+</style>

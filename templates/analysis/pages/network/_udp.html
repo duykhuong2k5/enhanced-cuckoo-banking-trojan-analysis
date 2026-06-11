@@ -1,0 +1,55 @@
+{% load analysis_tags %}
+
+<div class="ar-network-block" id="udp-requests">
+
+    {% if report.analysis.network.udp %}
+
+    <table class="ar-net-table">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th style="width: 60px;"></th>
+                <th>Destination</th>
+                <th style="width: 220px;">Resolved name</th>
+                <th style="width: 120px;">Protocol</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for p in report.analysis.network.udp %}
+            <tr>
+                <td>
+                    <span class="ar-flow">{{ p.src }}:{{ p.sport }}</span>
+                </td>
+
+                <td class="text-center">
+                    <span class="ar-arrow">→</span>
+                </td>
+
+                <td>
+                    <a href="{{ p.src }},{{ p.sport }},{{ p.dst }},{{ p.dport }},udp">
+                        <span class="ar-flow">{{ p.dst }}:{{ p.dport }}</span>
+                    </a>
+                </td>
+
+                <td>
+                    {% if report.iplookups|get_item:p.dst %}
+                        {{ report.iplookups|get_item:p.dst }}
+                    {% else %}
+                        <span class="ar-muted">N/A</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <span class="ar-pill ar-pill-orange">UDP</span>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="ar-empty">No UDP traffic.</div>
+    {% endif %}
+
+</div>

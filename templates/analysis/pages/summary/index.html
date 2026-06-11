@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load analysis_tags %}
+{% block content %}
+
+<div class="flex-nav ar-anyrun-shell">
+    {% include "analysis/pages/nav-sidebar.html" %}
+
+    <section class="flex-nav__body cuckoo-analysis" tabindex="0">
+
+        <header class="page-header cuckoo-analysis__header ar-page-header">
+            <h1>Summary</h1>
+
+            {% if report.analysis.target.category == "file" %}
+            <div class="header-right">
+                <span class="file-name">
+                    <i class="fa fa-file-o"></i>
+                    {{ report.analysis.target.file.name }}
+                </span>
+            </div>
+            {% endif %}
+        </header>
+
+        <div class="container-fluid ar-anyrun-container">
+
+            {% if report.analysis.debug.errors %}
+                {% include "analysis/pages/summary/_errors.html" %}
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-8">
+
+                    {% if report.analysis.info.category == "file" and report.analysis.target %}
+                        {% include "analysis/pages/summary/_file.html" %}
+                    {% elif report.analysis.info.category == "archive" and report.analysis.target %}
+                        {% include "analysis/pages/summary/_archive.html" %}
+                    {% elif report.analysis.info.category == "url" %}
+                        {% include "analysis/pages/summary/_url.html" %}
+                    {% endif %}
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <section class="ar-side-card">
+                        <h3><i class="fa fa-fire"></i> Score</h3>
+
+                        {% if report.analysis.info.score >= 5 %}
+                            <div class="ar-score-box ar-score-danger">
+                                <strong>Malicious activity</strong>
+                                <span>{{ report.analysis.info.score }} / 10</span>
+                            </div>
+                        {% elif report.analysis.info.score >= 2 %}
+                            <div class="ar-score-box ar-score-warning">
+                                <strong>Suspicious activity</strong>
+                                <span>{{ report.analysis.info.score }} / 10</span>
+                            </div>
+                        {% else %}
+                            <div class="ar-score-box ar-score-benign">
+                                <strong>No strong threat</strong>
+                                <span>{{ report.analysis.info.score }} / 10</span>
+                            </div>
+                        {% endif %}
+
+                        <p class="ar-note">
+                            Score is based on Cuckoo signatures, behavior, network activity and static indicators.
+                        </p>
+                    </section>
+
+                    {% if report.analysis.metadata and report.analysis.metadata.cfgextr %}
+                    <section class="ar-side-card">
+                        <h3><i class="fa fa-bug"></i> Malware Configuration</h3>
+
+                        {% for cfgextr in report.analysis.metadata.cfgextr %}
+                        <div class="ar-config-box">
+                            <div class="ar-config-family">
+                                {{ cfgextr.family|default:"Unknown family" }}
+                            </div>
+
+                            {% if cfgextr.campaign %}
+                            <div class="ar-config-row">
+                                <b>Campaign:</b> {{ cfgextr.campaign }}
+                            </div>
+                            {% endif %}
+
+                            {% if cfgextr.cnc %}
+                            <div class="ar-config-row">
+                                <b>CnC:</b>
+                                <ul>
+                                    {% for url in cfgextr.cnc %}
+                                        <li>{{ url }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            {% if cfgextr.url %}
+                            <div class="ar-config-row">
+                                <b>URLs:</b>
+                                <ul>
+                                    {% for url in cfgextr.url %}
+                                        <li>{{ url }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            {% if cfgextr.type %}
+                            <div class="ar-config-row">
+                                <b>Type:</b> {{ cfgextr.type }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </section>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    {% include "analysis/pages/summary/_info.html" %}
+                </div>
+            </div>
+
+            <div class="row">
+	        <div class="col-md-12">
+		    {% include "analysis/pages/summary/_dashboard_charts.html" %}
+	        </div>
+	    </div>
+            
+            <div class="row">
+	        <div class="col-md-12">
+		    {% include "analysis/pages/summary/_malware_mitre.html" %}
+	        </div>
+	    </div>
+	    <div class="row">
+	        <div class="col-md-12">
+		    {% include "analysis/pages/summary/_banking_killchain.html" %}
+	        </div>
+	    </div>
+            
+
+            <div class="row">
+                <div class="col-md-12">
+                    {% include "analysis/pages/summary/_signatures.html" %}
+                </div>
+            </div>
+            <div class="row">
+	        <div class="col-md-12">
+		    {% include "analysis/pages/summary/_behavior_graph.html" %}
+	        </div>
+	    </div>
+            
+            <div class="row">
+	        <div class="col-md-12">
+		    {% include "analysis/pages/summary/_dropped_files.html" %}
+	        </div>
+	    </div>
+            <div class="row">
+	        <div class="col-md-12">
+		    {% include "analysis/pages/summary/_threats.html" %}
+	        </div>
+	    </div>
+
+            <div class="row ar-network-summary-row">
+                <div class="col-lg-8 col-md-8 col-sm-12">
+                    <section class="ar-card">
+                        <div class="ar-section-header">
+                            <h2>DNS requests</h2>
+                        </div>
+                        {% include "analysis/pages/network/_dns.html" %}
+                    </section>
+                </div>
+
+                <div class="col-lg-4 col-md-4 col-sm-12">
+                    <section class="ar-card">
+                        <div class="ar-section-header">
+                            <h2>Hosts</h2>
+                        </div>
+                        {% include "analysis/pages/network/_hosts.html" %}
+                    </section>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    {% include "analysis/pages/summary/_screenshots.html" %}
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="flex-grid__footer spread-alignment">
+            <p class="footnote">
+                &copy;2010-2018 <a href="https://www.cuckoosandbox.org" target="_blank">Cuckoo Sandbox</a>
+            </p>
+            <div class="logo">
+                <img src="{% static "graphic/cuckoo_inverse.png" %}" alt="Cuckoo Malware Analysis Sandbox" />
+                <a href="#">Back to Top</a>
+            </div>
+        </footer>
+
+    </section>
+</div>
+
+<style>
+.ar-anyrun-container {
+    padding-top: 18px;
+}
+
+.ar-page-header {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.ar-page-header h1 {
+    font-size: 30px;
+    font-weight: 700;
+    color: #24364f;
+}
+
+.ar-side-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.ar-side-card h3 {
+    margin: 0 0 14px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #24364f;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+}
+
+.ar-score-box {
+    padding: 14px;
+    border-radius: 3px;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.ar-score-box strong {
+    display: block;
+    font-size: 15px;
+}
+
+.ar-score-box span {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+.ar-score-danger {
+    background: #ef4444;
+}
+
+.ar-score-warning {
+    background: #f97316;
+}
+
+.ar-score-benign {
+    background: #10b981;
+}
+
+.ar-note {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
+}
+
+.ar-config-box {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.ar-config-box:last-child {
+    border-bottom: 0;
+    margin-bottom: 0;
+}
+
+.ar-config-family {
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.ar-config-row {
+    font-size: 12px;
+    color: #334155;
+    margin-bottom: 6px;
+    word-break: break-word;
+}
+
+.ar-config-row ul {
+    padding-left: 18px;
+    margin: 5px 0 0 0;
+}
+
+.ar-network-summary-row {
+    margin-top: 18px;
+}
+</style>
+
+{% endblock %}

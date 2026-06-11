@@ -1,0 +1,15 @@
+<section id="static_strings">
+
+    {% if report.analysis.strings %}
+
+    <div class="ar-string-box">
+        {% for string in report.analysis.strings %}
+            <div class="ar-string-line">{{ string }}</div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+        <div class="ar-empty">No strings extracted.</div>
+    {% endif %}
+
+</section>

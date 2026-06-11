@@ -1,0 +1,73 @@
+<li class="ar-bg-tree-node">
+
+    <div class="ar-bg-node
+        {% if process.process_name == "cmd.exe" or process.process_name == "conhost.exe" %}
+            ar-bg-node-neutral
+        {% elif report.analysis.info.score >= 5 %}
+            ar-bg-node-danger
+        {% elif report.analysis.info.score >= 2 %}
+            ar-bg-node-warning
+        {% else %}
+            ar-bg-node-neutral
+        {% endif %}
+    ">
+
+        {% if process.process_name == "cmd.exe" or process.process_name == "conhost.exe" %}
+            <div class="ar-bg-tag">no specs</div>
+        {% elif report.analysis.info.score >= 5 %}
+            <div class="ar-bg-tag">#MALICIOUS</div>
+        {% elif report.analysis.info.score >= 2 %}
+            <div class="ar-bg-tag">#SUSPICIOUS</div>
+        {% endif %}
+
+        <a class="ar-bg-title"
+           href="{% url "analysis" report.analysis.info.id "behavior" %}#ar-process-{{ process.pid }}"
+           onclick="if (typeof expand_process === 'function') { expand_process({{ process.pid }}); return false; }">
+
+            {% if process.process_name == "cmd.exe" %}
+                <i class="fa fa-terminal ar-bg-icon-neutral"></i>
+            {% elif process.process_name == "conhost.exe" %}
+                <i class="fa fa-wrench ar-bg-icon-neutral"></i>
+            {% else %}
+                <i class="fa fa-bug ar-bg-icon-danger"></i>
+            {% endif %}
+
+            <span>{{ process.process_name|default:"unknown" }}</span>
+        </a>
+
+        <div class="ar-bg-meta">
+            PID {{ process.pid }}
+            {% if process.ppid %}
+                / PPID {{ process.ppid }}
+            {% endif %}
+        </div>
+
+        {% if process.command_line %}
+        <div class="ar-bg-meta">
+            {{ process.command_line }}
+        </div>
+        {% endif %}
+
+        {% if process.process_name == "cmd.exe" or process.process_name == "conhost.exe" %}
+            <div class="ar-bg-nospec">no specs</div>
+        {% else %}
+            <div class="ar-bg-indicators">
+                <i class="fa fa-file-code-o" title="File activity"></i>
+                <i class="fa fa-qrcode" title="Registry / IOC"></i>
+                <i class="fa fa-exchange" title="Network or process activity"></i>
+            </div>
+        {% endif %}
+
+    </div>
+
+    {% if process.children %}
+        <ul class="ar-bg-children">
+        {% for child in process.children %}
+            {% with process=child template_name="analysis/pages/behavior/_tree_process.html" %}
+                {% include template_name %}
+            {% endwith %}
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+</li>

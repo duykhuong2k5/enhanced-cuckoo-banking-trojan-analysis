@@ -1,0 +1,257 @@
+{% load analysis_tags %}
+
+<section class="ar-card ar-summary-dropped">
+
+    <div class="ar-section-header">
+        <h2>Files activity</h2>
+        <label class="ar-print-check">
+            <input type="checkbox" checked>
+            Add for printing
+        </label>
+    </div>
+
+    <div class="ar-mini-metrics">
+        <div class="ar-mini-metric">
+            <span>Dropped files</span>
+            <strong>{{ report.analysis.dropped|length }}</strong>
+        </div>
+
+        <div class="ar-mini-metric">
+            <span>Executable / binary</span>
+            <strong>{{ report.analysis.dropped|length }}</strong>
+        </div>
+
+        <div class="ar-mini-metric">
+            <span>Suspicious files</span>
+            <strong>{{ report.analysis.dropped|length }}</strong>
+        </div>
+    </div>
+
+    {% if report.analysis.dropped|length > 0 %}
+
+    <table class="ar-summary-file-table">
+        <thead>
+            <tr>
+                <th style="width: 70px;">PID</th>
+                <th style="width: 180px;">Process</th>
+                <th>Filename</th>
+                <th style="width: 160px;">Type</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for file in report.analysis.dropped %}
+            <tr>
+                <td>
+                    {% if file.pids %}
+                        {% for pid in file.pids %}
+                            <div class="ar-pid">PID {{ pid }}</div>
+                        {% endfor %}
+                    {% else %}
+                        <span class="ar-muted">N/A</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if file.pids %}
+                        {% for pid in file.pids %}
+                            <div>{{ pid|process_name:report.analysis }}</div>
+                        {% endfor %}
+                    {% else %}
+                        <span class="ar-muted">N/A</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <div class="ar-file-name">
+                        {{ file.name|default:"unknown" }}
+                    </div>
+
+                    {% if file.filepath %}
+                    <div class="ar-file-path">
+                        {{ file.filepath }}
+                    </div>
+                    {% endif %}
+
+                    <div class="ar-hash-line">
+                        <b>MD5:</b>
+                        <span>{{ file.md5|default:"N/A" }}</span>
+                    </div>
+
+                    <div class="ar-hash-line">
+                        <b>SHA256:</b>
+                        <span>{{ file.sha256|default:"N/A" }}</span>
+                    </div>
+
+                    {% if file.yara %}
+                    <div class="ar-yara-line">
+                        <b>YARA:</b>
+                        {% for sign in file.yara %}
+                            <span class="ar-pill ar-pill-red">{{ sign.name }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <span class="ar-pill">
+                        {{ file.type|default:"unknown" }}
+                    </span>
+
+                    {% if file.object_id %}
+                    <div class="ar-file-actions">
+                        <a href="{% url "analysis.views.file" "dropped" file.object_id %}">
+                            Download
+                        </a>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="ar-empty">No dropped files.</div>
+    {% endif %}
+
+</section>
+
+<style>
+.ar-summary-dropped {
+    margin-top: 24px;
+}
+
+.ar-mini-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.ar-mini-metric {
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 3px;
+}
+
+.ar-mini-metric span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.ar-mini-metric strong {
+    display: block;
+    font-size: 24px;
+    color: #111827;
+    margin-top: 4px;
+}
+
+.ar-summary-file-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ar-summary-file-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 10px;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.ar-summary-file-table td {
+    padding: 10px;
+    font-size: 12px;
+    color: #1f2937;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+.ar-file-name {
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.ar-file-path {
+    color: #64748b;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    word-break: break-all;
+    margin-bottom: 6px;
+}
+
+.ar-hash-line {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    color: #334155;
+    word-break: break-all;
+    margin-top: 3px;
+}
+
+.ar-hash-line b {
+    color: #111827;
+}
+
+.ar-pid {
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 3px;
+}
+
+.ar-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 11px;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 11px;
+    margin: 2px;
+}
+
+.ar-pill-red {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.ar-yara-line {
+    margin-top: 6px;
+}
+
+.ar-file-actions {
+    margin-top: 8px;
+}
+
+.ar-file-actions a {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    background: #24364f;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ar-file-actions a:hover {
+    background: #1d4ed8;
+    color: #fff;
+    text-decoration: none;
+}
+
+.ar-muted {
+    color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+    .ar-mini-metrics {
+        grid-template-columns: 1fr;
+    }
+}
+</style>

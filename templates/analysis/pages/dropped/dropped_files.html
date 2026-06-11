@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load analysis_tags %}
+{% block content %}
+
+<div class="flex-nav ar-anyrun-shell">
+    {% include "analysis/pages/nav-sidebar.html" %}
+
+    <section class="flex-nav__body cuckoo-analysis" tabindex="0">
+
+        <header class="page-header cuckoo-analysis__header ar-page-header">
+            <h1>Files activity</h1>
+        </header>
+
+        <div class="container-fluid ar-files-container">
+
+            <div class="ar-metric-grid">
+                <div class="ar-metric-card">
+                    <span>Dropped files</span>
+                    <strong>{{ report.analysis.dropped|length }}</strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>Executable files</span>
+                    <strong>
+                        {% if report.analysis.dropped %}
+                            {{ report.analysis.dropped|length }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>Suspicious files</span>
+                    <strong>
+                        {% if report.analysis.dropped %}
+                            {{ report.analysis.dropped|length }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>Unknown types</span>
+                    <strong>0</strong>
+                </div>
+            </div>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>Dropped files</h2>
+                    <span class="ar-section-subtitle">Files created, written, or extracted during execution</span>
+                </div>
+
+                {% if report.analysis.dropped|length > 0 %}
+
+                <table class="ar-file-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">#</th>
+                            <th>File</th>
+                            <th style="width: 180px;">Type</th>
+                            <th style="width: 170px;">Process</th>
+                            <th style="width: 160px;">Size</th>
+                            <th style="width: 160px;">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for file in report.analysis.dropped %}
+                        <tr>
+                            <td>
+                                <strong>{{ forloop.counter }}</strong>
+                            </td>
+
+                            <td>
+                                <div class="ar-file-name">
+                                    <i class="fa fa-file-o"></i>
+                                    {{ file.name|default:"unknown" }}
+                                </div>
+
+                                {% if file.filepath %}
+                                <div class="ar-file-path">{{ file.filepath }}</div>
+                                {% endif %}
+
+                                <div class="ar-hash-line">
+                                    <b>MD5:</b>
+                                    <span>{{ file.md5|default:"N/A" }}</span>
+                                </div>
+
+                                <div class="ar-hash-line">
+                                    <b>SHA1:</b>
+                                    <span>{{ file.sha1|default:"N/A" }}</span>
+                                </div>
+
+                                <div class="ar-hash-line">
+                                    <b>SHA256:</b>
+                                    <span>{{ file.sha256|default:"N/A" }}</span>
+                                </div>
+
+                                {% if file.ssdeep %}
+                                <div class="ar-hash-line">
+                                    <b>SSDEEP:</b>
+                                    <span>{{ file.ssdeep }}</span>
+                                </div>
+                                {% endif %}
+
+                                {% if file.yara %}
+                                <div class="ar-yara-box">
+                                    <b>YARA:</b>
+                                    {% for sign in file.yara %}
+                                        <span class="ar-pill ar-pill-danger">
+                                            {{ sign.name }}
+                                            {% if sign.meta.description %}
+                                                - {{ sign.meta.description }}
+                                            {% endif %}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <span class="ar-pill">
+                                    {{ file.type|default:"unknown" }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if file.pids %}
+                                    {% for pid in file.pids %}
+                                        <div class="ar-pid">
+                                            PID {{ pid }}
+                                            <span>{{ pid|process_name:report.analysis }}</span>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="ar-muted">N/A</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if file.size %}
+                                    {{ file.size|sizeof_fmt }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if file.object_id %}
+                                    <a href="{% url "analysis.views.file" "dropped" file.object_id %}" class="ar-btn ar-btn-primary">
+                                        <i class="fa fa-download"></i> Download
+                                    </a>
+
+                                    <a href="{% url "submission/dropped" report.analysis.info.id file.sha1 %}" class="ar-btn ar-btn-warning">
+                                        <i class="fa fa-refresh"></i> Submit
+                                    </a>
+                                {% else %}
+                                    <span class="ar-muted">Empty or missing</span>
+                                {% endif %}
+
+                                {% if file.sha256 %}
+                                <a target="_blank" href="https://www.virustotal.com/en/file/{{ file.sha256 }}/analysis/" class="ar-btn ar-btn-light">
+                                    VirusTotal
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+                {% else %}
+                    <div class="ar-empty">No dropped files.</div>
+                {% endif %}
+            </section>
+
+        </div>
+
+        <footer class="flex-grid__footer spread-alignment">
+            <p class="footnote">
+                &copy;2010-2018 <a href="https://www.cuckoosandbox.org" target="_blank">Cuckoo Sandbox</a>
+            </p>
+            <div class="logo">
+                <img src="{% static "graphic/cuckoo_inverse.png" %}" alt="Cuckoo Malware Analysis Sandbox" />
+                <a href="#">Back to Top</a>
+            </div>
+        </footer>
+
+    </section>
+</div>
+
+<style>
+.ar-files-container {
+    padding-top: 18px;
+}
+
+.ar-page-header h1 {
+    font-size: 30px;
+    font-weight: 700;
+    color: #24364f;
+}
+
+.ar-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.ar-metric-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #24364f;
+    padding: 14px;
+    border-radius: 3px;
+}
+
+.ar-metric-card span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.ar-metric-card strong {
+    display: block;
+    font-size: 26px;
+    color: #111827;
+    margin-top: 6px;
+}
+
+.ar-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    padding: 18px;
+    margin-bottom: 24px;
+}
+
+.ar-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 2px solid #2d3748;
+    margin-bottom: 16px;
+}
+
+.ar-section-header h2 {
+    font-size: 26px;
+    color: #24364f;
+    font-weight: 700;
+    margin: 0 0 7px 0;
+}
+
+.ar-section-subtitle {
+    color: #64748b;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.ar-file-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ar-file-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 10px;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.ar-file-table td {
+    padding: 11px 10px;
+    font-size: 12px;
+    color: #1f2937;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+.ar-file-name {
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.ar-file-path {
+    color: #64748b;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    word-break: break-all;
+    margin-bottom: 8px;
+}
+
+.ar-hash-line {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    color: #334155;
+    word-break: break-all;
+    margin-top: 3px;
+}
+
+.ar-hash-line b {
+    color: #111827;
+}
+
+.ar-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 11px;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 11px;
+    margin: 2px;
+}
+
+.ar-pill-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.ar-yara-box {
+    margin-top: 8px;
+}
+
+.ar-pid {
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+
+.ar-pid span {
+    display: block;
+    font-weight: 400;
+    color: #64748b;
+}
+
+.ar-btn {
+    display: block;
+    padding: 5px 8px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.ar-btn:hover {
+    text-decoration: none;
+}
+
+.ar-btn-primary {
+    background: #24364f;
+    color: #fff;
+}
+
+.ar-btn-warning {
+    background: #f97316;
+    color: #fff;
+}
+
+.ar-btn-light {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.ar-muted {
+    color: #94a3b8;
+}
+
+.ar-empty {
+    padding: 14px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+@media (max-width: 1100px) {
+    .ar-metric-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .ar-metric-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+{% endblock %}

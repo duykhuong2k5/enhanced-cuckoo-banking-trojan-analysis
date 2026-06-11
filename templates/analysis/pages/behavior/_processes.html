@@ -1,0 +1,259 @@
+{% load analysis_tags %}
+
+<div class="ar-processes">
+
+    {% if report.analysis.behavior.processes %}
+
+    <table class="ar-process-table">
+        <thead>
+            <tr>
+                <th style="width: 80px;">PID</th>
+                <th>Process</th>
+                <th style="width: 90px;">Parent</th>
+                <th style="width: 120px;">API calls</th>
+                <th style="width: 220px;">Indicators</th>
+                <th style="width: 120px;">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for process in report.analysis.behavior.processes|filter_key_if_has:"track" %}
+
+            <tr id="ar-process-row-{{ process.pid }}" data-length="{{ process.calls|length }}">
+                <td>
+                    <strong>{{ process.pid }}</strong>
+                </td>
+
+                <td>
+                    <span class="ar-process-name">
+                        {{ process.process_name|default:"unknown" }}
+                    </span>
+
+                    {% if process.command_line %}
+                        <span class="ar-command">{{ process.command_line }}</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {{ process.ppid|default:"N/A" }}
+                </td>
+
+                <td>
+                    {{ process.calls|length }}
+                </td>
+
+                <td>
+                    <a href="#" class="ar-badge ar-badge-file ar-filter-link" data-pid="{{ process.pid }}" data-filter="file">file</a>
+                    <a href="#" class="ar-badge ar-badge-registry ar-filter-link" data-pid="{{ process.pid }}" data-filter="registry">registry</a>
+                    <a href="#" class="ar-badge ar-badge-network ar-filter-link" data-pid="{{ process.pid }}" data-filter="network">network</a>
+                    <a href="#" class="ar-badge ar-badge-process ar-filter-link" data-pid="{{ process.pid }}" data-filter="process">process</a>
+                </td>
+
+                <td>
+                    <a href="#ar-process-{{ process.pid }}"
+                       class="ar-open-process"
+                       data-pid="{{ process.pid }}"
+                       data-toggle="collapse">
+                        View calls
+                    </a>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="6">
+                    <div class="collapse ar-process-detail" id="ar-process-{{ process.pid }}">
+
+                        <div class="ar-filter-row">
+                            <a href="#" class="ar-badge ar-load-default" data-pid="{{ process.pid }}">default</a>
+                            <a href="#" class="ar-badge ar-badge-file ar-filter-link" data-pid="{{ process.pid }}" data-filter="file">file</a>
+                            <a href="#" class="ar-badge ar-badge-registry ar-filter-link" data-pid="{{ process.pid }}" data-filter="registry">registry</a>
+                            <a href="#" class="ar-badge ar-badge-network ar-filter-link" data-pid="{{ process.pid }}" data-filter="network">network</a>
+                            <a href="#" class="ar-badge ar-badge-process ar-filter-link" data-pid="{{ process.pid }}" data-filter="process">process</a>
+                            <a href="#" class="ar-badge ar-filter-link" data-pid="{{ process.pid }}" data-filter="services">services</a>
+                            <a href="#" class="ar-badge ar-filter-link" data-pid="{{ process.pid }}" data-filter="synchronisation">sync</a>
+                            <a href="#" class="ar-badge ar-filter-link" data-pid="{{ process.pid }}" data-filter="iexplore">iexplore</a>
+                            <a href="#" class="ar-badge ar-filter-link" data-pid="{{ process.pid }}" data-filter="office">office</a>
+                            <a href="#" class="ar-badge ar-filter-link" data-pid="{{ process.pid }}" data-filter="pdf">pdf</a>
+                        </div>
+
+                        <div class="pagination pagination-centered">
+                            <ul class="pagination" id="ar_pagination_top_{{ process.pid }}"></ul>
+                        </div>
+
+                        <div class="ar-calltable" id="ar_calltable_{{ process.pid }}">
+                            <div class="ar-loading">
+                                Click a filter or wait for API calls to load.
+                            </div>
+                        </div>
+
+                        <div class="pagination pagination-centered">
+                            <ul class="pagination" id="ar_pagination_{{ process.pid }}"></ul>
+                        </div>
+
+                    </div>
+                </td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="ar-empty">No monitored processes.</div>
+    {% endif %}
+
+</div>
+
+<script type="text/javascript">
+    var ar_loaded_processes = {};
+
+    function ar_paginationbar(pages, page, pid) {
+        if (pages === 0 || isNaN(pages)) {
+            return "";
+        }
+
+        function active(i, page) {
+            if (i == page) {
+                return " class=\"active\"";
+            }
+            return "";
+        }
+
+        var out = "";
+        out += "<li" + active(1, page) + "><a href=\"#\" data-pid=\"" + pid + "\" data-page=\"1\">1</a></li>";
+
+        if (page - 10 > 2) {
+            out += "<li><span>...</span></li>";
+        }
+
+        for (i = Math.max(2, page - 10); i <= Math.min(pages - 1, page + 10); i++) {
+            out += "<li" + active(i, page) + "><a href=\"#\" data-pid=\"" + pid + "\" data-page=\"" + i + "\">" + i + "</a></li>";
+        }
+
+        if (page + 10 < pages - 1) {
+            out += "<li><span>...</span></li>";
+        }
+
+        if (pages > 1) {
+            out += "<li" + active(pages, page) + "><a href=\"#\" data-pid=\"" + pid + "\" data-page=\"" + pages + "\">" + pages + "</a></li>";
+        }
+
+        return out;
+    }
+
+    function ar_load_chunk(pid, pagenum, callback) {
+        $("#ar_calltable_" + pid).html("<div class=\"ar-loading\"><i class=\"fa fa-spinner fa-spin\"></i> Loading behavioral API calls...</div>");
+
+        $("#ar_calltable_" + pid).load("{% url "analysis/recent" %}chunk/{{ report.analysis.info.id }}/" + pid + "/" + pagenum + "/", function(data, status, xhr) {
+            if (status == "error") {
+                $("#ar_calltable_" + pid).html("<div class=\"ar-empty\">Error loading API calls. Please reload the page.</div>");
+            } else {
+                var pages = parseInt($("#ar-process-row-" + pid).data("length"));
+                var pagination = ar_paginationbar(pages, pagenum, pid);
+
+                $("#ar_pagination_" + pid).html(pagination);
+                $("#ar_pagination_top_" + pid).html(pagination);
+
+                ar_loaded_processes[pid] = true;
+
+                if (typeof callback === "function") {
+                    callback();
+                }
+            }
+        });
+    }
+
+    function ar_load_filtered_chunk(pid, category) {
+        $("#ar_calltable_" + pid).html("<div class=\"ar-loading\"><i class=\"fa fa-spinner fa-spin\"></i> Loading " + category + " activity...</div>");
+
+        $("#ar_calltable_" + pid).load("{% url "analysis/recent" %}filtered/{{ report.analysis.info.id }}/" + pid + "/" + category + "/", function(data, status, xhr) {
+            if (status == "error") {
+                $("#ar_calltable_" + pid).html("<div class=\"ar-empty\">Error loading filtered calls.</div>");
+            } else {
+                $("#ar_pagination_" + pid).html("");
+                $("#ar_pagination_top_" + pid).html("");
+                ar_loaded_processes[pid] = true;
+            }
+        });
+    }
+
+    function expand_process(pid) {
+        $("#ar-process-" + pid).collapse("show");
+
+        if (!ar_loaded_processes[pid]) {
+            ar_load_chunk(pid, 1);
+        }
+
+        var target = $("#ar-process-row-" + pid);
+        if (target.length) {
+            $("html, body").animate({
+                scrollTop: target.offset().top - 90
+            }, 250);
+        }
+    }
+
+    function show_tab(id) {
+        if (id.indexOf("process_") === 0) {
+            var pid = id.replace("process_", "");
+            expand_process(pid);
+        }
+    }
+
+    function go_to_api_call(pid, call_id) {
+        var pagenum = Math.floor(call_id / 100) + 1;
+
+        expand_process(pid);
+
+        ar_load_chunk(pid, pagenum, function() {
+            var call = $("#call_" + call_id);
+            if (call.length) {
+                call.get(0).scrollIntoView(false);
+            }
+        });
+    }
+
+    $(document).ready(function() {
+
+        $(".ar-open-process").click(function(e) {
+            var pid = $(this).data("pid");
+            expand_process(pid);
+        });
+
+        $(".ar-load-default").click(function(e) {
+            e.preventDefault();
+            var pid = $(this).data("pid");
+            expand_process(pid);
+            ar_load_chunk(pid, 1);
+        });
+
+        $(".ar-filter-link").click(function(e) {
+            e.preventDefault();
+
+            var pid = $(this).data("pid");
+            var category = $(this).data("filter");
+
+            $("#ar-process-" + pid).collapse("show");
+            ar_load_filtered_chunk(pid, category);
+        });
+
+        $(document).on("click", ".pagination a", function(e) {
+            var pid = $(this).data("pid");
+            var page = $(this).data("page");
+
+            if (pid && page) {
+                e.preventDefault();
+                ar_load_chunk(pid, parseInt(page));
+            }
+        });
+
+        $(document).on("click", ".call-link", function(e) {
+            e.preventDefault();
+
+            var cid = $(this).attr("data-cid");
+            var pid = $(this).attr("data-pid");
+
+            go_to_api_call(+pid, +cid);
+        });
+
+    });
+</script>

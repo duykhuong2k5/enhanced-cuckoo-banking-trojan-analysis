@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load analysis_tags %}
+{% block content %}
+
+<div class="flex-nav ar-anyrun-shell">
+    {% include "analysis/pages/nav-sidebar.html" %}
+
+    <section class="flex-nav__body cuckoo-analysis" tabindex="0">
+
+        <header class="page-header cuckoo-analysis__header ar-page-header">
+            <h1><i class="fa fa-globe"></i> Network Analysis</h1>
+        </header>
+
+        <div class="container-fluid ar-network-container">
+
+            <div class="ar-metric-grid">
+                <div class="ar-metric-card">
+                    <span>Hosts</span>
+                    <strong>{{ report.analysis.network.hosts|length }}</strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>DNS requests</span>
+                    <strong>{{ report.analysis.network.dns|length }}</strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>TCP</span>
+                    <strong>{{ report.analysis.network.tcp|length }}</strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>UDP</span>
+                    <strong>{{ report.analysis.network.udp|length }}</strong>
+                </div>
+            </div>
+
+            <div class="ar-download-row">
+                {% if report.analysis.network.pcap_id %}
+                <a class="ar-btn ar-btn-primary" href="{% url "analysis.views.file" "pcap" report.analysis.network.pcap_id %}">
+                    <i class="fa fa-download"></i> Download PCAP
+                </a>
+                {% endif %}
+
+                {% if report.analysis.network.mitmproxy_id %}
+                <a class="ar-btn ar-btn-primary" href="{% url "analysis.views.file" "mitmproxy" report.analysis.network.mitmproxy_id %}">
+                    <i class="fa fa-download"></i> Download mitmproxy dump
+                </a>
+                {% endif %}
+            </div>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>Connections</h2>
+                    <span class="ar-section-subtitle">Contacted hosts and IP reputation context</span>
+                </div>
+
+                {% include "analysis/pages/network/_hosts.html" %}
+            </section>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>DNS requests</h2>
+                    <span class="ar-section-subtitle">Resolved domains and returned addresses</span>
+                </div>
+
+                {% include "analysis/pages/network/_dns.html" %}
+            </section>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>TCP requests</h2>
+                    <span class="ar-section-subtitle">TCP flows observed in PCAP</span>
+                </div>
+
+                {% include "analysis/pages/network/_tcp.html" %}
+            </section>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>UDP requests</h2>
+                    <span class="ar-section-subtitle">UDP flows observed in PCAP</span>
+                </div>
+
+                {% include "analysis/pages/network/_udp.html" %}
+            </section>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>Threats</h2>
+                    <span class="ar-section-subtitle">IDS alerts from Suricata and Snort</span>
+                </div>
+
+                {% include "analysis/pages/network/_suricata.html" %}
+                {% include "analysis/pages/network/_snort.html" %}
+            </section>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>HTTP requests</h2>
+                    <span class="ar-section-subtitle">HTTP/HTTPS activity</span>
+                </div>
+
+                {% include "analysis/pages/network/_http.html" %}
+            </section>
+
+        </div>
+
+        <footer class="flex-grid__footer center-left">
+            <p class="footnote">
+                &copy;2010-2018 <a href="https://www.cuckoosandbox.org" target="_blank">Cuckoo Sandbox</a>
+            </p>
+            <div class="logo">
+                <img src="{% static "graphic/cuckoo_inverse.png" %}" alt="Cuckoo Malware Analysis Sandbox" />
+                <a href="#">Back to Top</a>
+            </div>
+        </footer>
+
+    </section>
+</div>
+
+<style>
+.ar-network-container {
+    padding-top: 18px;
+}
+
+.ar-page-header h1 {
+    font-size: 30px;
+    font-weight: 700;
+    color: #24364f;
+}
+
+.ar-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.ar-metric-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #24364f;
+    padding: 14px;
+    border-radius: 3px;
+}
+
+.ar-metric-card span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.ar-metric-card strong {
+    display: block;
+    font-size: 26px;
+    color: #111827;
+    margin-top: 6px;
+}
+
+.ar-download-row {
+    margin-bottom: 18px;
+}
+
+.ar-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    padding: 18px;
+    margin-bottom: 24px;
+}
+
+.ar-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 2px solid #2d3748;
+    margin-bottom: 16px;
+}
+
+.ar-section-header h2 {
+    font-size: 26px;
+    color: #24364f;
+    font-weight: 700;
+    margin: 0 0 7px 0;
+}
+
+.ar-section-subtitle {
+    color: #64748b;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.ar-net-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ar-net-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 10px;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.ar-net-table td {
+    padding: 10px;
+    font-size: 12px;
+    color: #1f2937;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+.ar-mono {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+}
+
+.ar-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 11px;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 11px;
+    margin: 2px;
+}
+
+.ar-pill-green {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.ar-pill-red {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.ar-pill-orange {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.ar-pill-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.ar-btn {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 6px;
+}
+
+.ar-btn:hover {
+    text-decoration: none;
+}
+
+.ar-btn-primary {
+    background: #24364f;
+    color: #fff;
+}
+
+.ar-empty {
+    padding: 14px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+.ar-flow {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+}
+
+.ar-arrow {
+    color: #64748b;
+    padding: 0 6px;
+}
+
+@media (max-width: 1100px) {
+    .ar-metric-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .ar-metric-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ar-section-header {
+        display: block;
+    }
+}
+</style>
+
+{% endblock %}

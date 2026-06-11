@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load analysis_tags %}
+{% block content %}
+
+<div class="flex-nav ar-anyrun-shell">
+    {% include "analysis/pages/nav-sidebar.html" %}
+
+    <section class="flex-nav__body cuckoo-analysis" tabindex="0">
+
+        <header class="cuckoo-analysis__header ar-page-header">
+            <h1>Behavioral Analysis</h1>
+        </header>
+
+        <div class="container-fluid ar-behavior-container">
+
+            <div class="ar-metric-grid">
+
+                <div class="ar-metric-card">
+                    <span>Total processes</span>
+                    <strong>{{ report.analysis.behavior.processes|length }}</strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>Monitored processes</span>
+                    <strong>{{ report.analysis.behavior.processes|filter_key_if_has:"track"|length }}</strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>Signatures</span>
+                    <strong>{{ report.analysis.signatures|length }}</strong>
+                </div>
+
+                <div class="ar-metric-card">
+                    <span>Network hosts</span>
+                    <strong>{{ report.analysis.network.hosts|length }}</strong>
+                </div>
+
+            </div>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>Behavior graph</h2>
+                    <span class="ar-section-subtitle">Process execution tree</span>
+                </div>
+
+                {% include "analysis/pages/behavior/_tree.html" %}
+            </section>
+
+            <section class="ar-card">
+                <div class="ar-section-header">
+                    <h2>Process information</h2>
+                    <span class="ar-section-subtitle">PID, command line, parent process and API calls</span>
+                </div>
+
+                {% include "analysis/pages/behavior/_processes.html" %}
+            </section>
+
+        </div>
+
+        <footer class="flex-grid__footer spread-alignment">
+            <p class="footnote">
+                &copy;2010-2018 <a href="https://www.cuckoosandbox.org" target="_blank">Cuckoo Sandbox</a>
+            </p>
+            <div class="logo">
+                <img src="{% static "graphic/cuckoo_inverse.png" %}" alt="Cuckoo Malware Analysis Sandbox" />
+                <a href="#">Back to Top</a>
+            </div>
+        </footer>
+
+    </section>
+</div>
+
+<style>
+.ar-behavior-container {
+    padding-top: 18px;
+}
+
+.ar-page-header h1 {
+    font-size: 30px;
+    font-weight: 700;
+    color: #24364f;
+}
+
+.ar-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.ar-metric-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #24364f;
+    padding: 14px;
+    border-radius: 3px;
+}
+
+.ar-metric-card span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.ar-metric-card strong {
+    display: block;
+    font-size: 26px;
+    color: #111827;
+    margin-top: 6px;
+}
+
+.ar-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    padding: 18px;
+    margin-bottom: 24px;
+}
+
+.ar-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 2px solid #2d3748;
+    margin-bottom: 16px;
+}
+
+.ar-section-header h2 {
+    font-size: 26px;
+    line-height: 1.2;
+    color: #24364f;
+    font-weight: 700;
+    margin: 0 0 7px 0;
+}
+
+.ar-section-subtitle {
+    color: #64748b;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.ar-process-tree {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.ar-process-tree ul {
+    list-style: none;
+    padding-left: 28px;
+    margin-top: 8px;
+    border-left: 1px dashed #cbd5e1;
+}
+
+.ar-tree-node {
+    margin: 8px 0;
+}
+
+.ar-tree-process {
+    display: block;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #64748b;
+    background: #f8fafc;
+    border-radius: 3px;
+}
+
+.ar-tree-process:hover {
+    background: #eef6ff;
+    border-left-color: #2563eb;
+}
+
+.ar-tree-title {
+    color: #1f2937;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ar-tree-title:hover {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+.ar-tree-meta {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #64748b;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    word-break: break-all;
+}
+
+.ar-process-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ar-process-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 10px;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.ar-process-table td {
+    padding: 10px;
+    font-size: 12px;
+    color: #1f2937;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+.ar-process-name {
+    font-weight: 700;
+    color: #111827;
+}
+
+.ar-command {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    word-break: break-all;
+}
+
+.ar-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 11px;
+    margin: 2px;
+    text-decoration: none;
+}
+
+.ar-badge:hover {
+    text-decoration: none;
+    background: #cbd5e1;
+}
+
+.ar-badge-file {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.ar-badge-registry {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.ar-badge-network {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.ar-badge-process {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.ar-open-process {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 3px;
+    background: #24364f;
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ar-open-process:hover {
+    background: #1d4ed8;
+    color: #fff;
+    text-decoration: none;
+}
+
+.ar-process-detail {
+    background: #f8fafc;
+    padding: 14px;
+    border: 1px solid #dbeafe;
+    margin-top: 8px;
+}
+
+.ar-filter-row {
+    margin-bottom: 12px;
+}
+
+.ar-calltable {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    padding: 10px;
+    overflow-x: auto;
+}
+
+.ar-loading {
+    padding: 15px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.ar-empty {
+    color: #64748b;
+    padding: 12px;
+}
+
+@media (max-width: 1100px) {
+    .ar-metric-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .ar-metric-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ar-section-header {
+        display: block;
+    }
+}
+</style>
+
+{% endblock %}

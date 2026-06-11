@@ -1,0 +1,79 @@
+{% load analysis_tags %}
+
+<div class="ar-network-block" id="hosts">
+
+    {% if report.analysis.network.hosts %}
+
+    <table class="ar-net-table ar-hosts-table">
+        <thead>
+            <tr>
+                <th style="width: 180px;">IP address</th>
+                <th style="width: 130px;">Status</th>
+                <th style="width: 120px;">Lookup</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for host in report.analysis.network.hosts %}
+            {% if host|slice:":7" != "192.168" and ":" not in host %}
+            <tr>
+                <td class="ar-ip-cell">
+                    <span class="ar-mono ar-ip">{{ host }}</span>
+                </td>
+
+                <td>
+                    {% if host|isdeadip:analysis %}
+                        <span class="ar-pill ar-pill-red">Dead IP / Port</span>
+                    {% else %}
+                        <span class="ar-pill ar-pill-green">Active</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <a target="_blank" href="{% url "analysis.views.moloch" ip=host %}" class="ar-host-link">
+                        Moloch
+                    </a>
+                </td>
+            </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="ar-empty">No hosts contacted.</div>
+    {% endif %}
+
+</div>
+
+<style>
+.ar-hosts-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.ar-hosts-table th,
+.ar-hosts-table td {
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+}
+
+.ar-ip-cell {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+}
+
+.ar-ip {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    display: inline-block;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+}
+
+.ar-host-link {
+    white-space: nowrap;
+}
+</style>
